@@ -1,12 +1,30 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import type { Expense, Unit } from "@/lib/types"
+import { formatNIS } from "@/lib/utils"
 
-export function RecentExpenses({ expenses, units, limit = 6 }: { expenses: Expense[]; units: Unit[]; limit?: number }) {
+export function RecentExpenses({
+  expenses,
+  units,
+  limit = 6,
+}: {
+  expenses: Expense[]
+  units: Unit[]
+  limit?: number
+}) {
   const unitMap = new Map(units.map((u) => [u.id, u.name]))
-  const recent = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, limit)
+  const recent = [...expenses]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit)
 
   return (
     <Card>
@@ -29,10 +47,16 @@ export function RecentExpenses({ expenses, units, limit = 6 }: { expenses: Expen
               {recent.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell>{e.title}</TableCell>
-                  <TableCell>{e.scope === "Global" ? "Global" : unitMap.get(e.unitId || "") || "Unit"}</TableCell>
+                  <TableCell>
+                    {e.scope === "Global"
+                      ? "Global"
+                      : unitMap.get(e.unitId || "") || "Unit"}
+                  </TableCell>
                   <TableCell>{e.category}</TableCell>
                   <TableCell>{new Date(e.date).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">${e.amount.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">
+                    {formatNIS(e.amount)}
+                  </TableCell>
                 </TableRow>
               ))}
               {recent.length === 0 && (

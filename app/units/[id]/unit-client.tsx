@@ -1,17 +1,31 @@
 "use client"
 
-import * as React from "react"
-import { notFound } from "next/navigation"
-import { IconCalendar, IconMail, IconMapPin, IconPhone, IconWallet } from "@tabler/icons-react"
+import { ExpensesForm } from "@/components/expenses-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ExpensesForm } from "@/components/expenses-form"
-import { initLocalData, loadExpenses, saveExpenses } from "@/lib/storage"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { sampleUnits } from "@/lib/sample-data"
+import { initLocalData, loadExpenses, saveExpenses } from "@/lib/storage"
 import type { Expense } from "@/lib/types"
+import { formatNIS } from "@/lib/utils"
+import {
+  IconCalendar,
+  IconMail,
+  IconMapPin,
+  IconPhone,
+  IconWallet,
+} from "@tabler/icons-react"
+import { notFound } from "next/navigation"
+import * as React from "react"
 
 export default function DashboardUnitClient({ id }: { id: string }) {
   const [expenses, setExpenses] = React.useState<Expense[]>([])
@@ -26,7 +40,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
 
   const unitExpenses = React.useMemo(
     () => expenses.filter((e) => e.scope === "Unit" && e.unitId === unit.id),
-    [expenses, unit.id],
+    [expenses, unit.id]
   )
   const totalUnitExpensesYear = React.useMemo(() => {
     const y = new Date().getFullYear()
@@ -60,12 +74,15 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                 {unit.address} ({unit.location})
               </span>
               <span className="flex items-center gap-2">
-                <IconWallet className="size-4" />${unit.monthlyRent.toLocaleString()} monthly rent
+                <IconWallet className="size-4" />
+                {formatNIS(unit.monthlyRent)} monthly rent
               </span>
               <span className="flex items-center gap-2">
                 <IconCalendar className="size-4" />
                 Start {new Date(unit.contractStart).toLocaleDateString()}
-                {unit.contractEnd ? ` • Ends ${new Date(unit.contractEnd).toLocaleDateString()}` : " • Open-ended"}
+                {unit.contractEnd
+                  ? ` • Ends ${new Date(unit.contractEnd).toLocaleDateString()}`
+                  : " • Open-ended"}
               </span>
             </div>
             <Separator />
@@ -75,13 +92,19 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                 <div>{unit.tenant.name}</div>
                 <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
                   {unit.tenant.phone && (
-                    <a className="flex items-center gap-1 hover:underline" href={`tel:${unit.tenant.phone}`}>
+                    <a
+                      className="flex items-center gap-1 hover:underline"
+                      href={`tel:${unit.tenant.phone}`}
+                    >
                       <IconPhone className="size-4" />
                       {unit.tenant.phone}
                     </a>
                   )}
                   {unit.tenant.email && (
-                    <a className="flex items-center gap-1 hover:underline" href={`mailto:${unit.tenant.email}`}>
+                    <a
+                      className="flex items-center gap-1 hover:underline"
+                      href={`mailto:${unit.tenant.email}`}
+                    >
                       <IconMail className="size-4" />
                       {unit.tenant.email}
                     </a>
@@ -98,19 +121,31 @@ export default function DashboardUnitClient({ id }: { id: string }) {
           <CardContent className="grid gap-3">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Annual Rent</div>
-              <div className="font-semibold">${(unit.monthlyRent * 12).toLocaleString()}</div>
+              <div className="font-semibold">
+                {formatNIS(unit.monthlyRent * 12)}
+              </div>
             </div>
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">Annual Expenses</div>
-              <div className="font-semibold">${totalUnitExpensesYear.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">
+                Annual Expenses
+              </div>
+              <div className="font-semibold">
+                {formatNIS(totalUnitExpensesYear)}
+              </div>
             </div>
             <Separator />
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Net (Unit)</div>
-              <div className="font-semibold">${(unit.monthlyRent * 12 - totalUnitExpensesYear).toLocaleString()}</div>
+              <div className="font-semibold">
+                {formatNIS(unit.monthlyRent * 12 - totalUnitExpensesYear)}
+              </div>
             </div>
             <div className="pt-2">
-              <ExpensesForm units={sampleUnits} defaultUnitId={unit.id} onAdd={handleAddExpense} />
+              <ExpensesForm
+                units={sampleUnits}
+                defaultUnitId={unit.id}
+                onAdd={handleAddExpense}
+              />
             </div>
           </CardContent>
         </Card>
@@ -138,8 +173,12 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                     <TableCell>{e.title}</TableCell>
                     <TableCell>{e.category}</TableCell>
                     <TableCell>{e.recurrence}</TableCell>
-                    <TableCell>{new Date(e.date).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">${e.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {new Date(e.date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatNIS(e.amount)}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {unitExpenses.length === 0 && (

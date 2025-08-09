@@ -1,17 +1,27 @@
 "use client"
 
-import { IconChevronRight } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import type { Unit } from "@/lib/types"
+import { formatNIS } from "@/lib/utils"
+import { IconChevronRight } from "@tabler/icons-react"
 
 function statusLabel(u: Unit) {
   const today = new Date()
   const end = u.contractEnd ? new Date(u.contractEnd) : undefined
   if (!end) return "Active"
-  const days = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  const days = Math.ceil(
+    (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  )
   if (days < 0) return "Ended"
   if (days <= 60) return "Ending soon"
   return "Active"
@@ -46,15 +56,17 @@ export function UnitsTable({ units }: { units: Unit[] }) {
                     <Badge variant="outline">{u.property}</Badge>
                   </TableCell>
                   <TableCell>{u.tenant.name}</TableCell>
-                  <TableCell className="text-right">${u.monthlyRent.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">
+                    {formatNIS(u.monthlyRent)}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={
                         statusLabel(u) === "Active"
                           ? "secondary"
                           : statusLabel(u) === "Ending soon"
-                            ? "outline"
-                            : "destructive"
+                          ? "outline"
+                          : "destructive"
                       }
                     >
                       {statusLabel(u)}
