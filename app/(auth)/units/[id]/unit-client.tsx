@@ -36,11 +36,9 @@ export default function DashboardUnitClient({ id }: { id: string }) {
     setExpenses(loadExpenses())
   }, [])
 
-  if (!unit) return notFound()
-
   const unitExpenses = React.useMemo(
-    () => expenses.filter((e) => e.scope === "Unit" && e.unitId === unit.id),
-    [expenses, unit.id]
+    () => expenses.filter((e) => e.scope === "Unit" && e.unitId === unit?.id),
+    [expenses, unit?.id]
   )
   const totalUnitExpensesYear = React.useMemo(() => {
     const y = new Date().getFullYear()
@@ -51,6 +49,8 @@ export default function DashboardUnitClient({ id }: { id: string }) {
       return s + (d.getFullYear() === y ? e.amount : 0)
     }, 0)
   }, [unitExpenses])
+
+  if (!unit) return notFound()
 
   function handleAddExpense(exp: Expense) {
     const next = [exp, ...expenses]

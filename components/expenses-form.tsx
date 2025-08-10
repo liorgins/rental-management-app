@@ -1,7 +1,5 @@
 "use client"
 
-import * as React from "react"
-import { IconPlus } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,9 +12,23 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import type { Expense, ExpenseCategory, ExpenseRecurrence, ExpenseScope, Unit } from "@/lib/types"
+import type {
+  Expense,
+  ExpenseCategory,
+  ExpenseRecurrence,
+  ExpenseScope,
+  Unit,
+} from "@/lib/types"
+import { IconPlus } from "@tabler/icons-react"
+import * as React from "react"
 
 type Props = {
   units: Unit[]
@@ -26,12 +38,17 @@ type Props = {
 
 export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
   const [open, setOpen] = React.useState(false)
-  const [scope, setScope] = React.useState<ExpenseScope>(defaultUnitId ? "Unit" : "Global")
+  const [scope, setScope] = React.useState<ExpenseScope>(
+    defaultUnitId ? "Unit" : "Global"
+  )
   const [title, setTitle] = React.useState("")
   const [amount, setAmount] = React.useState<number>(0)
-  const [date, setDate] = React.useState<string>(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = React.useState<string>(
+    new Date().toISOString().slice(0, 10)
+  )
   const [category, setCategory] = React.useState<ExpenseCategory>("Repair")
-  const [recurrence, setRecurrence] = React.useState<ExpenseRecurrence>("One-time")
+  const [recurrence, setRecurrence] =
+    React.useState<ExpenseRecurrence>("One-time")
   const [unitId, setUnitId] = React.useState<string | undefined>(defaultUnitId)
   const [notes, setNotes] = React.useState("")
 
@@ -82,7 +99,8 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
         <DialogHeader>
           <DialogTitle>Add Expense</DialogTitle>
           <DialogDescription>
-            Add a new expense. Choose Global for taxes/insurance, or Unit for a specific rental.
+            Add a new expense. Choose Global for taxes/insurance, or Unit for a
+            specific rental.
           </DialogDescription>
         </DialogHeader>
         <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -109,11 +127,19 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="date">Date</Label>
-              <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input
+                id="date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label>Category</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as any)}>
+              <Select
+                value={category}
+                onValueChange={(v) => setCategory(v as ExpenseCategory)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -138,7 +164,10 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Scope</Label>
-              <Select value={scope} onValueChange={(v) => setScope(v as any)}>
+              <Select
+                value={scope}
+                onValueChange={(v) => setScope(v as ExpenseScope)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Global or Unit" />
                 </SelectTrigger>
@@ -167,7 +196,10 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
             )}
             <div className="flex flex-col gap-2">
               <Label>Recurrence</Label>
-              <Select value={recurrence} onValueChange={(v) => setRecurrence(v as any)}>
+              <Select
+                value={recurrence}
+                onValueChange={(v) => setRecurrence(v as ExpenseRecurrence)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select recurrence" />
                 </SelectTrigger>
