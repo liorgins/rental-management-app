@@ -1,5 +1,7 @@
 "use client"
 
+import { IconChevronRight } from "@tabler/icons-react"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,20 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Unit } from "@/lib/types"
-import { formatNIS } from "@/lib/utils"
-import { IconChevronRight } from "@tabler/icons-react"
-
-function statusLabel(u: Unit) {
-  const today = new Date()
-  const end = u.contractEnd ? new Date(u.contractEnd) : undefined
-  if (!end) return "Active"
-  const days = Math.ceil(
-    (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  )
-  if (days < 0) return "Ended"
-  if (days <= 60) return "Ending soon"
-  return "Active"
-}
+import { formatNIS, getContractStatus } from "@/lib/utils"
 
 export function UnitsTable({ units }: { units: Unit[] }) {
   return (
@@ -62,14 +51,19 @@ export function UnitsTable({ units }: { units: Unit[] }) {
                   <TableCell>
                     <Badge
                       variant={
-                        statusLabel(u) === "Active"
+                        getContractStatus(u) === "Active"
                           ? "secondary"
-                          : statusLabel(u) === "Ending soon"
+                          : getContractStatus(u) === "Ending soon"
                           ? "outline"
                           : "destructive"
                       }
+                      className={
+                        getContractStatus(u) === "Ending soon"
+                          ? "bg-yellow-50 text-yellow-800 border-yellow-200"
+                          : ""
+                      }
                     >
-                      {statusLabel(u)}
+                      {getContractStatus(u)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

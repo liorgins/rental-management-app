@@ -1,5 +1,8 @@
 "use client"
 
+import { IconBuilding, IconHome } from "@tabler/icons-react"
+import { usePathname } from "next/navigation"
+
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -8,8 +11,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import type { Unit } from "@/lib/types"
-import { IconBuilding, IconHome } from "@tabler/icons-react"
-import { usePathname } from "next/navigation"
 
 export function NavUnits({ units }: { units: Unit[] }) {
   const pathname = usePathname()

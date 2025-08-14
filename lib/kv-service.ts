@@ -1,6 +1,6 @@
 import { isBrowser, redis, STORAGE_KEYS } from "./kv"
 import { sampleUnits, seedExpenses } from "./sample-data"
-import type { Expense, Unit } from "./types"
+import type { Expense, Income, Unit } from "./types"
 
 // Fallback to localStorage when KV is not available (development mode)
 const localStorage = isBrowser ? window.localStorage : null
@@ -236,4 +236,91 @@ export async function initializeData(): Promise<void> {
   }
 }
 
+// Income operations
+export async function getIncomes(): Promise<Income[]> {
+  try {
+    // Try Upstash KV first
+    const incomes = await redis.get<Income[]>(STORAGE_KEYS.INCOMES)
+    if (incomes && Array.isArray(incomes)) {
+      return incomes
+    }
+  } catch (error) {
+    console.warn(
+      "Failed to fetch incomes from KV, falling back to localStorage:",
+      error
+    )
+  }
 
+  // Fallback to localStorage
+  if (localStorage) {
+    try {
+      const stored = localStorage.getItem("rental.incomes")
+      if (stored) {
+        return JSON.parse(stored) as Income[]
+      }
+    } catch (error) {
+      console.warn("Failed to fetch incomes from localStorage:", error)
+    }
+  }
+
+  // Return empty array as default
+  return []
+}
+
+export async function saveIncomes(incomes: Income[]): Promise<void> {
+  try {
+    // Save to KV
+    await redis.set(STORAGE_KEYS.INCOMES, incomes)
+  } catch (error) {
+    console.warn(
+      "Failed to save incomes to KV, falling back to localStorage:",
+      error
+    )
+
+    // Fallback to localStorage
+    if (localStorage) {
+      localStorage.setItem("rental.incomes", JSON.stringify(incomes))
+    }
+  }
+}
+
+export async function getIncome(id: string): Promise<Income | null> {
+  const incomes = await getIncomes()
+  return incomes.find((income) => income.id === id) || null
+}
+
+export async function createIncome(income: Income): Promise<Income> {
+  const incomes = await getIncomes()
+  const updatedIncomes = [income, ...incomes]
+  await saveIncomes(updatedIncomes)
+  return income
+}
+
+export async function updateIncome(
+  id: string,
+  updates: Partial<Income>
+): Promise<Income | null> {
+  const incomes = await getIncomes()
+  const index = incomes.findIndex((income) => income.id === id)
+
+  if (index === -1) {
+    return null
+  }
+
+  const updatedIncome = { ...incomes[index], ...updates }
+  incomes[index] = updatedIncome
+  await saveIncomes(incomes)
+  return updatedIncome
+}
+
+export async function deleteIncome(id: string): Promise<boolean> {
+  const incomes = await getIncomes()
+  const filteredIncomes = incomes.filter((income) => income.id !== id)
+
+  if (filteredIncomes.length === incomes.length) {
+    return false // Income not found
+  }
+
+  await saveIncomes(filteredIncomes)
+  return true
+}

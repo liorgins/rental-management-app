@@ -1,13 +1,74 @@
-import {
-  createUnit,
-  deleteUnit,
-  getUnit,
-  getUnits,
-  initializeData,
-  updateUnit,
-} from "@/lib/kv-service"
-import type { Unit } from "@/lib/types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+
+import type { Unit } from "@/lib/types"
+
+// API functions
+async function fetchUnits(): Promise<Unit[]> {
+  const response = await fetch("/api/units")
+  if (!response.ok) {
+    throw new Error("Failed to fetch units")
+  }
+  return response.json()
+}
+
+async function fetchUnit(id: string): Promise<Unit | null> {
+  const response = await fetch(`/api/units/${id}`)
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null
+    }
+    throw new Error("Failed to fetch unit")
+  }
+  return response.json()
+}
+
+async function createUnitAPI(unit: Unit): Promise<Unit> {
+  const response = await fetch("/api/units", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(unit),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to create unit")
+  }
+  return response.json()
+}
+
+async function updateUnitAPI(
+  id: string,
+  updates: Partial<Unit>
+): Promise<Unit | null> {
+  const response = await fetch(`/api/units/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  })
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null
+    }
+    throw new Error("Failed to update unit")
+  }
+  return response.json()
+}
+
+async function deleteUnitAPI(id: string): Promise<boolean> {
+  const response = await fetch(`/api/units/${id}`, {
+    method: "DELETE",
+  })
+  if (!response.ok) {
+    if (response.status === 404) {
+      return false
+    }
+    throw new Error("Failed to delete unit")
+  }
+  const result = await response.json()
+  return result.success
+}
 
 // Query keys
 export const QUERY_KEYS = {
@@ -19,11 +80,7 @@ export const QUERY_KEYS = {
 export function useUnits() {
   return useQuery({
     queryKey: QUERY_KEYS.UNITS,
-    queryFn: async () => {
-      // Initialize data on first load
-      await initializeData()
-      return getUnits()
-    },
+    queryFn: fetchUnits,
   })
 }
 
@@ -31,7 +88,7 @@ export function useUnits() {
 export function useUnit(id: string) {
   return useQuery({
     queryKey: QUERY_KEYS.UNIT(id),
-    queryFn: () => getUnit(id),
+    queryFn: () => fetchUnit(id),
     enabled: !!id,
   })
 }
@@ -41,7 +98,7 @@ export function useCreateUnit() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: createUnit,
+    mutationFn: createUnitAPI,
     onSuccess: (newUnit) => {
       // Update units list
       queryClient.setQueryData(QUERY_KEYS.UNITS, (old: Unit[] = []) => [
@@ -63,7 +120,7 @@ export function useUpdateUnit() {
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Unit> }) =>
-      updateUnit(id, updates),
+      updateUnitAPI(id, updates),
     onSuccess: (updatedUnit) => {
       if (updatedUnit) {
         // Update units list
@@ -85,7 +142,7 @@ export function useDeleteUnit() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: deleteUnit,
+    mutationFn: deleteUnitAPI,
     onSuccess: (success, deletedId) => {
       if (success) {
         // Remove from units list
@@ -123,5 +180,3 @@ export function useOptimisticUpdateUnit() {
     },
   }
 }
-
-

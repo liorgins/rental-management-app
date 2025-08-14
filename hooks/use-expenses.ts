@@ -1,13 +1,103 @@
-import {
-  createExpense,
-  deleteExpense,
-  getExpense,
-  getExpenses,
-  initializeData,
-  updateExpense,
-} from "@/lib/kv-service"
-import type { Expense } from "@/lib/types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+
+import type { Expense } from "@/lib/types"
+
+// API functions
+async function fetchExpenses(params?: {
+  unitId?: string
+  scope?: string
+}): Promise<Expense[]> {
+  const searchParams = new URLSearchParams()
+  if (params?.unitId) searchParams.set("unitId", params.unitId)
+  if (params?.scope) searchParams.set("scope", params.scope)
+
+  const url = `/api/expenses${
+    searchParams.toString() ? `?${searchParams.toString()}` : ""
+  }`
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error("Failed to fetch expenses")
+  }
+  return response.json()
+}
+
+async function fetchExpense(id: string): Promise<Expense | null> {
+  const response = await fetch(`/api/expenses/${id}`)
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null
+    }
+    throw new Error("Failed to fetch expense")
+  }
+  return response.json()
+}
+
+async function createExpenseAPI(expense: Expense): Promise<Expense> {
+  const response = await fetch("/api/expenses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(expense),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to create expense")
+  }
+  return response.json()
+}
+
+async function updateExpenseAPI(
+  id: string,
+  updates: Partial<Expense>
+): Promise<Expense | null> {
+  const response = await fetch(`/api/expenses/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  })
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null
+    }
+    throw new Error("Failed to update expense")
+  }
+  return response.json()
+}
+
+async function deleteExpenseAPI(id: string): Promise<boolean> {
+  const response = await fetch(`/api/expenses/${id}`, {
+    method: "DELETE",
+  })
+  if (!response.ok) {
+    if (response.status === 404) {
+      return false
+    }
+    throw new Error("Failed to delete expense")
+  }
+  const result = await response.json()
+  return result.success
+}
+
+async function fetchExpenseStats(year?: number): Promise<{
+  totalYearly: number
+  monthlyRecurring: number
+  yearlyRecurring: number
+  oneTimeThisYear: number
+}> {
+  const searchParams = new URLSearchParams()
+  if (year) searchParams.set("year", year.toString())
+
+  const url = `/api/expenses/stats${
+    searchParams.toString() ? `?${searchParams.toString()}` : ""
+  }`
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error("Failed to fetch expense stats")
+  }
+  return response.json()
+}
 
 // Query keys
 export const QUERY_KEYS = {
@@ -20,11 +110,7 @@ export const QUERY_KEYS = {
 export function useExpenses() {
   return useQuery({
     queryKey: QUERY_KEYS.EXPENSES,
-    queryFn: async () => {
-      // Initialize data on first load
-      await initializeData()
-      return getExpenses()
-    },
+    queryFn: () => fetchExpenses(),
   })
 }
 
@@ -32,7 +118,7 @@ export function useExpenses() {
 export function useExpense(id: string) {
   return useQuery({
     queryKey: QUERY_KEYS.EXPENSE(id),
-    queryFn: () => getExpense(id),
+    queryFn: () => fetchExpense(id),
     enabled: !!id,
   })
 }
@@ -41,12 +127,7 @@ export function useExpense(id: string) {
 export function useUnitExpenses(unitId: string) {
   return useQuery({
     queryKey: QUERY_KEYS.UNIT_EXPENSES(unitId),
-    queryFn: async () => {
-      const expenses = await getExpenses()
-      return expenses.filter(
-        (expense) => expense.scope === "Unit" && expense.unitId === unitId
-      )
-    },
+    queryFn: () => fetchExpenses({ unitId }),
     enabled: !!unitId,
   })
 }
@@ -55,10 +136,7 @@ export function useUnitExpenses(unitId: string) {
 export function useGlobalExpenses() {
   return useQuery({
     queryKey: ["expenses", "global"],
-    queryFn: async () => {
-      const expenses = await getExpenses()
-      return expenses.filter((expense) => expense.scope === "Global")
-    },
+    queryFn: () => fetchExpenses({ scope: "global" }),
   })
 }
 
@@ -67,7 +145,7 @@ export function useCreateExpense() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: createExpense,
+    mutationFn: createExpenseAPI,
     onSuccess: (newExpense) => {
       // Update expenses list (add to beginning)
       queryClient.setQueryData(QUERY_KEYS.EXPENSES, (old: Expense[] = []) => [
@@ -106,7 +184,7 @@ export function useUpdateExpense() {
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Expense> }) =>
-      updateExpense(id, updates),
+      updateExpenseAPI(id, updates),
     onSuccess: (updatedExpense) => {
       if (updatedExpense) {
         // Update expenses list
@@ -156,7 +234,7 @@ export function useDeleteExpense() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: deleteExpense,
+    mutationFn: deleteExpenseAPI,
     onSuccess: (success, deletedId) => {
       if (success) {
         // Get the expense before deletion to know which caches to update
@@ -203,52 +281,6 @@ export function useExpenseStats(year?: number) {
 
   return useQuery({
     queryKey: ["expense-stats", currentYear],
-    queryFn: async () => {
-      const expenses = await getExpenses()
-
-      const yearlyExpenses = expenses.reduce((total, expense) => {
-        const expenseDate = new Date(expense.date)
-
-        if (expense.recurrence === "Monthly") {
-          return total + expense.amount * 12
-        } else if (expense.recurrence === "Yearly") {
-          return total + expense.amount
-        } else if (
-          expense.recurrence === "One-time" &&
-          expenseDate.getFullYear() === currentYear
-        ) {
-          return total + expense.amount
-        }
-
-        return total
-      }, 0)
-
-      const monthlyExpenses = expenses
-        .filter((e) => e.recurrence === "Monthly")
-        .reduce((total, expense) => total + expense.amount, 0)
-
-      const yearlyRecurring = expenses
-        .filter((e) => e.recurrence === "Yearly")
-        .reduce((total, expense) => total + expense.amount, 0)
-
-      const oneTimeThisYear = expenses
-        .filter((e) => {
-          const expenseDate = new Date(e.date)
-          return (
-            e.recurrence === "One-time" &&
-            expenseDate.getFullYear() === currentYear
-          )
-        })
-        .reduce((total, expense) => total + expense.amount, 0)
-
-      return {
-        totalYearly: yearlyExpenses,
-        monthlyRecurring: monthlyExpenses,
-        yearlyRecurring,
-        oneTimeThisYear,
-      }
-    },
+    queryFn: () => fetchExpenseStats(currentYear),
   })
 }
-
-

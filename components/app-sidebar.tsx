@@ -7,6 +7,7 @@ import {
   IconInnerShadowTop,
   IconSearch,
   IconSettings,
+  IconTrendingUp,
 } from "@tabler/icons-react"
 import type * as React from "react"
 
@@ -23,7 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { sampleUnits } from "@/lib/sample-data"
+import { useUnits } from "@/hooks/use-units"
 
 const data = {
   user: {
@@ -39,8 +40,13 @@ const data = {
     },
     {
       title: "Expenses",
-      url: "#",
+      url: "/expenses",
       icon: IconFileDollar,
+    },
+    {
+      title: "Income",
+      url: "/income",
+      icon: IconTrendingUp,
     },
   ],
   navSecondary: [
@@ -63,6 +69,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: units = [] } = useUnits()
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -82,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavUnits units={sampleUnits} />
+        <NavUnits units={units} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

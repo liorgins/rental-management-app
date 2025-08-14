@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from "recharts"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Expense, Unit } from "@/lib/types"
+import type { Expense, Income, Unit } from "@/lib/types"
 
 function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
@@ -33,16 +34,30 @@ function expenseAmountInMonth(exp: Expense, d: Date) {
   return expDate.getFullYear() === d.getFullYear() && expDate.getMonth() === d.getMonth() ? exp.amount : 0
 }
 
-export function computeYearlyStats(year: number, units: Unit[], expenses: Expense[]) {
+function incomeAmountInMonth(inc: Income, d: Date) {
+  const incDate = new Date(inc.date)
+  if (inc.recurrence === "Monthly") return inc.amount
+  if (inc.recurrence === "Yearly") {
+    return incDate.getMonth() === d.getMonth() ? inc.amount : 0
+  }
+  // One-time
+  return incDate.getFullYear() === d.getFullYear() && incDate.getMonth() === d.getMonth() ? inc.amount : 0
+}
+
+export function computeYearlyStats(year: number, units: Unit[], expenses: Expense[], incomes: Income[] = []) {
   const monthly = monthsOfYear(year).map((d) => {
-    const income = units.filter((u) => isActiveInMonth(u, d)).reduce((sum, u) => sum + u.monthlyRent, 0)
+    const rentalIncome = units.filter((u) => isActiveInMonth(u, d)).reduce((sum, u) => sum + u.monthlyRent, 0)
+    const additionalIncomes = incomes
+      .filter((i) => i.scope === "Global" || i.scope === "Unit")
+      .reduce((sum, i) => sum + incomeAmountInMonth(i, d), 0)
+    const totalIncome = rentalIncome + additionalIncomes
     const monthExpenses = expenses
       .filter((e) => e.scope === "Global" || e.scope === "Unit")
       .reduce((sum, e) => sum + expenseAmountInMonth(e, d), 0)
-    const net = income - monthExpenses
+    const net = totalIncome - monthExpenses
     return {
       date: monthKey(d),
-      income,
+      income: totalIncome,
       expenses: monthExpenses,
       net,
     }

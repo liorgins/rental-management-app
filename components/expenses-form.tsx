@@ -1,5 +1,8 @@
 "use client"
 
+import { IconPlus } from "@tabler/icons-react"
+import * as React from "react"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -27,8 +30,6 @@ import type {
   ExpenseScope,
   Unit,
 } from "@/lib/types"
-import { IconPlus } from "@tabler/icons-react"
-import * as React from "react"
 
 type Props = {
   units: Unit[]

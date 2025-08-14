@@ -1,7 +1,7 @@
 "use client"
 
-import type { Expense } from "./types"
 import { seedExpenses } from "./sample-data"
+import type { Expense } from "./types"
 
 const EXPENSES_KEY = "rental.expenses"
 const INIT_KEY = "rental.initialized"

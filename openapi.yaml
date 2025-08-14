@@ -1,0 +1,960 @@
+openapi: 3.0.3
+info:
+  title: Rental Management API
+  description: |
+    A comprehensive API for managing rental properties, units, expenses, and income.
+
+    This API provides endpoints for:
+    - Managing rental units (CRUD operations)
+    - Managing expenses (CRUD operations with filtering)
+    - Managing income (CRUD operations with filtering)
+    - Expense and income statistics and reporting
+
+    All data is persisted using Upstash Redis KV storage with automatic fallback to localStorage during development.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://your-app.vercel.app
+    description: Production server
+
+paths:
+  /api/units:
+    get:
+      summary: Get all units
+      description: Retrieve a list of all rental units
+      tags:
+        - Units
+      responses:
+        "200":
+          description: Successfully retrieved units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+              example:
+                - id: "unit-1"
+                  name: "Commercial Store"
+                  property: "Commercial"
+                  location: "Downtown"
+                  address: "123 Main St"
+                  monthlyRent: 2500
+                  tenant:
+                    name: "John's Coffee Shop"
+                    phone: "+1-555-0123"
+                    email: "john@coffee.com"
+                  contractStart: "2024-01-01"
+                  contractEnd: "2024-12-31"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      summary: Create a new unit
+      description: Create a new rental unit
+      tags:
+        - Units
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Unit"
+            example:
+              id: "unit-2"
+              name: "House A - Unit 1"
+              property: "Residential"
+              location: "Northside"
+              address: "456 Oak Ave"
+              monthlyRent: 1800
+              tenant:
+                name: "Jane Smith"
+                phone: "+1-555-0456"
+                email: "jane@email.com"
+              contractStart: "2024-02-01"
+      responses:
+        "201":
+          description: Unit created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/units/{id}:
+    get:
+      summary: Get a specific unit
+      description: Retrieve a single unit by its ID
+      tags:
+        - Units
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the unit
+          schema:
+            type: string
+          example: "unit-1"
+      responses:
+        "200":
+          description: Successfully retrieved unit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    put:
+      summary: Update a specific unit
+      description: Update an existing unit's information
+      tags:
+        - Units
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the unit
+          schema:
+            type: string
+          example: "unit-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitUpdate"
+            example:
+              monthlyRent: 2600
+              tenant:
+                name: "John's Updated Coffee Shop"
+                phone: "+1-555-0124"
+      responses:
+        "200":
+          description: Unit updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      summary: Delete a specific unit
+      description: Remove a unit from the system
+      tags:
+        - Units
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the unit
+          schema:
+            type: string
+          example: "unit-1"
+      responses:
+        "200":
+          description: Unit deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/expenses:
+    get:
+      summary: Get expenses
+      description: |
+        Retrieve expenses with optional filtering:
+        - Filter by unit ID to get unit-specific expenses
+        - Filter by scope to get global expenses only
+        - No filters returns all expenses
+      tags:
+        - Expenses
+      parameters:
+        - name: unitId
+          in: query
+          required: false
+          description: Filter expenses for a specific unit
+          schema:
+            type: string
+          example: "unit-1"
+        - name: scope
+          in: query
+          required: false
+          description: Filter expenses by scope
+          schema:
+            type: string
+            enum: [global]
+          example: "global"
+      responses:
+        "200":
+          description: Successfully retrieved expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+              example:
+                - id: "exp-1"
+                  title: "HVAC Repair"
+                  amount: 350
+                  date: "2024-01-15"
+                  category: "HVAC"
+                  scope: "Unit"
+                  unitId: "unit-1"
+                  recurrence: "One-time"
+                  notes: "Fixed heating system"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      summary: Create a new expense
+      description: Add a new expense to the system
+      tags:
+        - Expenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Expense"
+            example:
+              id: "exp-2"
+              title: "Property Insurance"
+              amount: 1200
+              date: "2024-01-01"
+              category: "Insurance"
+              scope: "Global"
+              recurrence: "Yearly"
+              notes: "Annual property insurance premium"
+      responses:
+        "201":
+          description: Expense created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/expenses/{id}:
+    get:
+      summary: Get a specific expense
+      description: Retrieve a single expense by its ID
+      tags:
+        - Expenses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the expense
+          schema:
+            type: string
+          example: "exp-1"
+      responses:
+        "200":
+          description: Successfully retrieved expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    put:
+      summary: Update a specific expense
+      description: Update an existing expense's information
+      tags:
+        - Expenses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the expense
+          schema:
+            type: string
+          example: "exp-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+            example:
+              amount: 400
+              notes: "Fixed heating system - updated cost"
+      responses:
+        "200":
+          description: Expense updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      summary: Delete a specific expense
+      description: Remove an expense from the system
+      tags:
+        - Expenses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the expense
+          schema:
+            type: string
+          example: "exp-1"
+      responses:
+        "200":
+          description: Expense deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/expenses/stats:
+    get:
+      summary: Get expense statistics
+      description: |
+        Retrieve aggregated expense statistics including:
+        - Total yearly expenses (projected)
+        - Monthly recurring expenses
+        - Yearly recurring expenses
+        - One-time expenses for the specified year
+      tags:
+        - Expenses
+      parameters:
+        - name: year
+          in: query
+          required: false
+          description: Year for statistics calculation (defaults to current year)
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+          example: 2024
+      responses:
+        "200":
+          description: Successfully retrieved expense statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseStats"
+              example:
+                totalYearly: 15000
+                monthlyRecurring: 800
+                yearlyRecurring: 2400
+                oneTimeThisYear: 3200
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/income:
+    get:
+      summary: Get all income
+      description: |
+        Retrieve a list of all income entries. Can be filtered by:
+        - unitId: Get income for a specific unit
+        - scope: Get global or unit-specific income
+      tags:
+        - Income
+      parameters:
+        - name: unitId
+          in: query
+          required: false
+          description: Filter income by unit ID
+          schema:
+            type: string
+          example: "unit-1"
+        - name: scope
+          in: query
+          required: false
+          description: Filter income by scope (global or unit)
+          schema:
+            type: string
+            enum: [global]
+          example: "global"
+      responses:
+        "200":
+          description: Successfully retrieved income list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Income"
+              example:
+                - id: "inc-1"
+                  title: "Monthly Rent Payment"
+                  amount: 2500
+                  date: "2024-01-01"
+                  category: "Rent"
+                  scope: "Unit"
+                  unitId: "unit-1"
+                  recurrence: "Monthly"
+                  notes: "Regular monthly rent"
+                - id: "inc-2"
+                  title: "Property Tax Refund"
+                  amount: 1000
+                  date: "2024-02-15"
+                  category: "Other"
+                  scope: "Global"
+                  recurrence: "One-time"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    post:
+      summary: Create a new income
+      description: Add a new income entry to the system
+      tags:
+        - Income
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Income"
+            example:
+              id: "inc-3"
+              title: "Monthly Rent Payment"
+              amount: 2500
+              date: "2024-01-01"
+              category: "Rent"
+              scope: "Unit"
+              unitId: "unit-1"
+              recurrence: "Monthly"
+              notes: "Regular monthly rent"
+      responses:
+        "201":
+          description: Income created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Income"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/income/{id}:
+    get:
+      summary: Get a specific income
+      description: Retrieve details for a specific income entry
+      tags:
+        - Income
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the income
+          schema:
+            type: string
+          example: "inc-1"
+      responses:
+        "200":
+          description: Successfully retrieved income
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Income"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    put:
+      summary: Update a specific income
+      description: Update details for a specific income entry
+      tags:
+        - Income
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the income
+          schema:
+            type: string
+          example: "inc-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeUpdate"
+            example:
+              amount: 2600
+              notes: "Updated rent amount"
+      responses:
+        "200":
+          description: Income updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Income"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+    delete:
+      summary: Delete a specific income
+      description: Remove an income entry from the system
+      tags:
+        - Income
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the income
+          schema:
+            type: string
+          example: "inc-1"
+      responses:
+        "200":
+          description: Income deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/openapi:
+    get:
+      summary: Get OpenAPI specification
+      description: Retrieve the complete OpenAPI specification for this API
+      tags:
+        - Documentation
+      responses:
+        "200":
+          description: Successfully retrieved OpenAPI specification
+          content:
+            application/json:
+              schema:
+                type: object
+                description: OpenAPI 3.0 specification
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  schemas:
+    Tenant:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Full name of the tenant
+          example: "John Smith"
+        phone:
+          type: string
+          description: Contact phone number
+          example: "+1-555-0123"
+        email:
+          type: string
+          format: email
+          description: Contact email address
+          example: "john@email.com"
+
+    Unit:
+      type: object
+      required:
+        - id
+        - name
+        - property
+        - location
+        - address
+        - monthlyRent
+        - tenant
+        - contractStart
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the unit
+          example: "unit-1"
+        name:
+          type: string
+          description: Display name of the unit
+          example: "Commercial Store"
+        property:
+          type: string
+          enum: [Commercial, Residential]
+          description: Type of property
+          example: "Commercial"
+        location:
+          type: string
+          enum: [Downtown, Northside, Southside]
+          description: Location area
+          example: "Downtown"
+        address:
+          type: string
+          description: Physical address of the unit
+          example: "123 Main St"
+        monthlyRent:
+          type: number
+          description: Monthly rent amount
+          minimum: 0
+          example: 2500
+        tenant:
+          $ref: "#/components/schemas/Tenant"
+        contractStart:
+          type: string
+          format: date
+          description: Contract start date (ISO 8601)
+          example: "2024-01-01"
+        contractEnd:
+          type: string
+          format: date
+          description: Contract end date (ISO 8601)
+          example: "2024-12-31"
+
+    UnitUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Display name of the unit
+        property:
+          type: string
+          enum: [Commercial, Residential]
+          description: Type of property
+        location:
+          type: string
+          enum: [Downtown, Northside, Southside]
+          description: Location area
+        address:
+          type: string
+          description: Physical address of the unit
+        monthlyRent:
+          type: number
+          description: Monthly rent amount
+          minimum: 0
+        tenant:
+          $ref: "#/components/schemas/Tenant"
+        contractStart:
+          type: string
+          format: date
+          description: Contract start date (ISO 8601)
+        contractEnd:
+          type: string
+          format: date
+          description: Contract end date (ISO 8601)
+
+    Expense:
+      type: object
+      required:
+        - id
+        - title
+        - amount
+        - date
+        - category
+        - scope
+        - recurrence
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the expense
+          example: "exp-1"
+        title:
+          type: string
+          description: Title or description of the expense
+          example: "HVAC Repair"
+        amount:
+          type: number
+          description: Expense amount
+          minimum: 0
+          example: 350
+        date:
+          type: string
+          format: date
+          description: Date of the expense (ISO 8601)
+          example: "2024-01-15"
+        category:
+          type: string
+          enum:
+            [
+              Repair,
+              Upgrade,
+              Plumbing,
+              HVAC,
+              Renovation,
+              Insurance,
+              Tax,
+              Maintenance,
+              Other,
+            ]
+          description: Category of the expense
+          example: "HVAC"
+        scope:
+          type: string
+          enum: [Global, Unit]
+          description: Scope of the expense (global or unit-specific)
+          example: "Unit"
+        unitId:
+          type: string
+          description: Unit ID (required when scope is 'Unit')
+          example: "unit-1"
+        recurrence:
+          type: string
+          enum: [One-time, Monthly, Yearly]
+          description: Recurrence pattern of the expense
+          example: "One-time"
+        notes:
+          type: string
+          description: Additional notes about the expense
+          example: "Fixed heating system"
+
+    ExpenseUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title or description of the expense
+        amount:
+          type: number
+          description: Expense amount
+          minimum: 0
+        date:
+          type: string
+          format: date
+          description: Date of the expense (ISO 8601)
+        category:
+          type: string
+          enum:
+            [
+              Repair,
+              Upgrade,
+              Plumbing,
+              HVAC,
+              Renovation,
+              Insurance,
+              Tax,
+              Maintenance,
+              Other,
+            ]
+          description: Category of the expense
+        scope:
+          type: string
+          enum: [Global, Unit]
+          description: Scope of the expense (global or unit-specific)
+        unitId:
+          type: string
+          description: Unit ID (required when scope is 'Unit')
+        recurrence:
+          type: string
+          enum: [One-time, Monthly, Yearly]
+          description: Recurrence pattern of the expense
+        notes:
+          type: string
+          description: Additional notes about the expense
+
+    ExpenseStats:
+      type: object
+      required:
+        - totalYearly
+        - monthlyRecurring
+        - yearlyRecurring
+        - oneTimeThisYear
+      properties:
+        totalYearly:
+          type: number
+          description: Total projected yearly expenses
+          example: 15000
+        monthlyRecurring:
+          type: number
+          description: Total monthly recurring expenses
+          example: 800
+        yearlyRecurring:
+          type: number
+          description: Total yearly recurring expenses
+          example: 2400
+        oneTimeThisYear:
+          type: number
+          description: Total one-time expenses for the specified year
+          example: 3200
+
+    Income:
+      type: object
+      required:
+        - id
+        - title
+        - amount
+        - date
+        - category
+        - scope
+        - recurrence
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the income
+          example: "inc-1"
+        title:
+          type: string
+          description: Title or description of the income
+          example: "Monthly Rent Payment"
+        amount:
+          type: number
+          description: Income amount in your currency
+          minimum: 0
+          example: 2500
+        date:
+          type: string
+          format: date
+          description: Date when income was received (ISO 8601)
+          example: "2024-01-01"
+        category:
+          type: string
+          enum: [Rent, Taxes, Fees, Other]
+          description: Category of income
+          example: "Rent"
+        scope:
+          type: string
+          enum: [Global, Unit]
+          description: Scope of the income (Global or Unit-specific)
+          example: "Unit"
+        unitId:
+          type: string
+          description: Unit ID (required when scope is 'Unit')
+          example: "unit-1"
+        recurrence:
+          type: string
+          enum: [One-time, Monthly, Yearly]
+          description: Recurrence pattern of the income
+          example: "Monthly"
+        notes:
+          type: string
+          description: Additional notes about the income
+          example: "Regular monthly rent payment"
+
+    IncomeUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title or description of the income
+        amount:
+          type: number
+          description: Income amount in your currency
+          minimum: 0
+        date:
+          type: string
+          format: date
+          description: Date when income was received (ISO 8601)
+        category:
+          type: string
+          enum: [Rent, Taxes, Fees, Other]
+          description: Category of income
+        scope:
+          type: string
+          enum: [Global, Unit]
+          description: Scope of the income (Global or Unit-specific)
+        unitId:
+          type: string
+          description: Unit ID (required when scope is 'Unit')
+        recurrence:
+          type: string
+          enum: [One-time, Monthly, Yearly]
+          description: Recurrence pattern of the income
+        notes:
+          type: string
+          description: Additional notes about the income
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Resource not found"
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Missing required field: name"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Unit not found"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Internal server error"
+
+tags:
+  - name: Units
+    description: Operations related to rental units
+  - name: Expenses
+    description: Operations related to expenses and financial tracking
+  - name: Income
+    description: Operations related to income and revenue tracking
+  - name: Documentation
+    description: API documentation and specification endpoints
