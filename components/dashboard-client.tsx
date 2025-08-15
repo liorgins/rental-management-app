@@ -156,62 +156,59 @@ export default function DashboardClient() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 py-6">
-      {/* Filters */}
+      {/* Compact Filters */}
       <div className="px-4 lg:px-6">
-        <div className="flex flex-col gap-4 rounded-lg border p-4">
+        <div className="flex items-center gap-4 rounded-lg border px-4 py-2">
           <div className="flex items-center gap-2">
-            <IconFilter className="h-4 w-4" />
-            <span className="text-sm font-medium">Dashboard Filters</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetFilters}
-              className="ml-auto h-8"
+            <IconFilter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filters:</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Label className="text-xs text-muted-foreground">Unit:</Label>
+            <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+              <SelectTrigger className="h-7 w-32 border-0 bg-transparent p-1 text-xs">
+                <SelectValue placeholder="All units" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Units</SelectItem>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Label className="text-xs text-muted-foreground">Year:</Label>
+            <Select
+              value={selectedYear.toString()}
+              onValueChange={(value) => setSelectedYear(parseInt(value))}
             >
-              <IconX className="h-4 w-4" />
-              Reset
-            </Button>
+              <SelectTrigger className="h-7 w-20 border-0 bg-transparent p-1 text-xs">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Unit Filter */}
-            <div>
-              <Label className="text-xs">Unit</Label>
-              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                <SelectTrigger className="h-8">
-                  <SelectValue placeholder="All units" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Units</SelectItem>
-                  {units.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Year Filter */}
-            <div>
-              <Label className="text-xs">Year</Label>
-              <Select
-                value={selectedYear.toString()}
-                onValueChange={(value) => setSelectedYear(parseInt(value))}
-              >
-                <SelectTrigger className="h-8">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearOptions.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="ml-auto h-7 px-2 text-xs"
+          >
+            <IconX className="h-3 w-3 mr-1" />
+            Reset
+          </Button>
         </div>
       </div>
 
