@@ -10,10 +10,15 @@ export async function GET() {
     // Extract all tags from all documents
     const allTags = documents.flatMap((doc) => doc.tags || [])
 
-    // Get unique tags (case-insensitive) and sort them
-    const uniqueTags = Array.from(
-      new Set(allTags.map((tag) => tag.toLowerCase()))
-    ).sort()
+    // Get unique tags (case-sensitive, but dedupe case-insensitively) and sort them
+    const tagMap = new Map<string, string>()
+    allTags.forEach((tag) => {
+      const lowerTag = tag.toLowerCase()
+      if (!tagMap.has(lowerTag)) {
+        tagMap.set(lowerTag, tag) // Store the first occurrence with original case
+      }
+    })
+    const uniqueTags = Array.from(tagMap.values()).sort()
 
     return NextResponse.json({ tags: uniqueTags })
   } catch (error) {

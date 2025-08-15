@@ -138,27 +138,10 @@ export function useCreateDocument() {
   return useMutation({
     mutationFn: createDocumentAPI,
     onSuccess: (newDocument) => {
-      // Update documents list (add to beginning)
-      queryClient.setQueryData(QUERY_KEYS.DOCUMENTS, (old: Document[] = []) => [
-        newDocument,
-        ...old,
-      ])
-
-      // Update unit-specific documents if applicable
-      if (newDocument.scope === "Unit" && newDocument.unitId) {
-        queryClient.setQueryData(
-          QUERY_KEYS.UNIT_DOCUMENTS(newDocument.unitId),
-          (old: Document[] = []) => [newDocument, ...old]
-        )
-      }
-
-      // Update global documents if applicable
-      if (newDocument.scope === "Global") {
-        queryClient.setQueryData(
-          ["documents", "global"],
-          (old: Document[] = []) => [newDocument, ...old]
-        )
-      }
+      // Invalidate all documents-related queries
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENTS })
+      queryClient.invalidateQueries({ queryKey: ["documents"] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENT_TAGS })
 
       // Set the new document in cache
       queryClient.setQueryData(QUERY_KEYS.DOCUMENT(newDocument.id), newDocument)
@@ -178,34 +161,10 @@ export function useUpdateDocument() {
       updateDocumentAPI(id, updates),
     onSuccess: (updatedDocument) => {
       if (updatedDocument) {
-        // Update documents list
-        queryClient.setQueryData(QUERY_KEYS.DOCUMENTS, (old: Document[] = []) =>
-          old.map((document) =>
-            document.id === updatedDocument.id ? updatedDocument : document
-          )
-        )
-
-        // Update unit-specific documents if applicable
-        if (updatedDocument.scope === "Unit" && updatedDocument.unitId) {
-          queryClient.setQueryData(
-            QUERY_KEYS.UNIT_DOCUMENTS(updatedDocument.unitId),
-            (old: Document[] = []) =>
-              old.map((document) =>
-                document.id === updatedDocument.id ? updatedDocument : document
-              )
-          )
-        }
-
-        // Update global documents if applicable
-        if (updatedDocument.scope === "Global") {
-          queryClient.setQueryData(
-            ["documents", "global"],
-            (old: Document[] = []) =>
-              old.map((document) =>
-                document.id === updatedDocument.id ? updatedDocument : document
-              )
-          )
-        }
+        // Invalidate all documents-related queries
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENTS })
+        queryClient.invalidateQueries({ queryKey: ["documents"] })
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENT_TAGS })
 
         // Update single document cache
         queryClient.setQueryData(
@@ -228,33 +187,10 @@ export function useDeleteDocument() {
     mutationFn: deleteDocumentAPI,
     onSuccess: (success, deletedId) => {
       if (success) {
-        // Get the document before deletion to know which caches to update
-        const deletedDocument = queryClient.getQueryData<Document>(
-          QUERY_KEYS.DOCUMENT(deletedId)
-        )
-
-        // Remove from documents list
-        queryClient.setQueryData(QUERY_KEYS.DOCUMENTS, (old: Document[] = []) =>
-          old.filter((document) => document.id !== deletedId)
-        )
-
-        // Remove from unit-specific documents if applicable
-        if (deletedDocument?.scope === "Unit" && deletedDocument.unitId) {
-          queryClient.setQueryData(
-            QUERY_KEYS.UNIT_DOCUMENTS(deletedDocument.unitId),
-            (old: Document[] = []) =>
-              old.filter((document) => document.id !== deletedId)
-          )
-        }
-
-        // Remove from global documents if applicable
-        if (deletedDocument?.scope === "Global") {
-          queryClient.setQueryData(
-            ["documents", "global"],
-            (old: Document[] = []) =>
-              old.filter((document) => document.id !== deletedId)
-          )
-        }
+        // Invalidate all documents-related queries
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENTS })
+        queryClient.invalidateQueries({ queryKey: ["documents"] })
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENT_TAGS })
 
         // Remove single document from cache
         queryClient.removeQueries({ queryKey: QUERY_KEYS.DOCUMENT(deletedId) })

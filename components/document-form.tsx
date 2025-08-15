@@ -1,6 +1,6 @@
 "use client"
 
-import { IconPlus, IconUpload } from "@tabler/icons-react"
+import { IconPlus } from "@tabler/icons-react"
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { FileUpload } from "@/components/ui/file-upload"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -93,14 +94,16 @@ export function DocumentForm({
     })
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFile = e.target.files?.[0]
+  function handleFilesChange(files: File[]) {
+    const selectedFile = files[0]
     if (selectedFile) {
       setFile(selectedFile)
       // Auto-fill name with filename if not already set
       if (!name) {
         setName(selectedFile.name.replace(/\.[^/.]+$/, "")) // Remove extension
       }
+    } else {
+      setFile(null)
     }
   }
 
@@ -121,23 +124,22 @@ export function DocumentForm({
         </DialogHeader>
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="file">File</Label>
-              <div className="relative">
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                />
-                <IconUpload className="absolute right-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-              </div>
-              {file && (
-                <div className="text-xs text-muted-foreground">
-                  {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                </div>
-              )}
+            <div className="flex flex-col gap-2 sm:col-span-2">
+              <Label>File</Label>
+              <FileUpload
+                single={true}
+                maxSize={50} // 50MB limit for documents
+                acceptedTypes={[
+                  "application/pdf",
+                  ".doc",
+                  ".docx",
+                  ".txt",
+                  ".jpg",
+                  ".jpeg",
+                  ".png",
+                ]}
+                onFilesChange={handleFilesChange}
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="name">Document Name</Label>
