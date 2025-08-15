@@ -1,6 +1,6 @@
 import { isBrowser, redis, STORAGE_KEYS } from "./kv"
 import { sampleUnits, seedExpenses } from "./sample-data"
-import type { Expense, Income, Unit } from "./types"
+import type { Document, Expense, Income, Unit } from "./types"
 
 // Fallback to localStorage when KV is not available (development mode)
 const localStorage = isBrowser ? window.localStorage : null
@@ -322,5 +322,98 @@ export async function deleteIncome(id: string): Promise<boolean> {
   }
 
   await saveIncomes(filteredIncomes)
+  return true
+}
+
+// Document operations
+async function saveDocuments(documents: Document[]) {
+  try {
+    await redis.set(STORAGE_KEYS.DOCUMENTS, documents)
+  } catch (error) {
+    console.warn("Failed to save to KV, falling back to localStorage:", error)
+    if (localStorage) {
+      localStorage.setItem("rental.documents", JSON.stringify(documents))
+    }
+  }
+}
+
+export async function getDocuments(): Promise<Document[]> {
+  try {
+    // Try Upstash KV first
+    const documents = await redis.get<Document[]>(STORAGE_KEYS.DOCUMENTS)
+    if (documents && Array.isArray(documents)) {
+      // Migrate documents to ensure they have required fields
+      return documents.map((doc) => ({
+        ...doc,
+        tags: doc.tags || [], // Ensure tags array exists
+        blobKey: doc.blobKey || doc.fileUrl, // Use fileUrl as fallback for blobKey
+      }))
+    }
+  } catch (error) {
+    console.warn(
+      "Failed to fetch from KV, falling back to localStorage:",
+      error
+    )
+  }
+
+  // Fallback to localStorage
+  if (localStorage) {
+    try {
+      const stored = localStorage.getItem("rental.documents")
+      if (stored) {
+        const documents = JSON.parse(stored) as Document[]
+        // Migrate documents to ensure they have required fields
+        return documents.map((doc) => ({
+          ...doc,
+          tags: doc.tags || [], // Ensure tags array exists
+          blobKey: doc.blobKey || doc.fileUrl, // Use fileUrl as fallback for blobKey
+        }))
+      }
+    } catch (error) {
+      console.error("Failed to parse documents from localStorage:", error)
+    }
+  }
+
+  return []
+}
+
+export async function getDocument(id: string): Promise<Document | null> {
+  const documents = await getDocuments()
+  return documents.find((doc) => doc.id === id) || null
+}
+
+export async function createDocument(document: Document): Promise<Document> {
+  const documents = await getDocuments()
+  const updatedDocuments = [document, ...documents]
+  await saveDocuments(updatedDocuments)
+  return document
+}
+
+export async function updateDocument(
+  id: string,
+  updates: Partial<Document>
+): Promise<Document | null> {
+  const documents = await getDocuments()
+  const index = documents.findIndex((doc) => doc.id === id)
+
+  if (index === -1) {
+    return null
+  }
+
+  const updatedDocument = { ...documents[index], ...updates }
+  documents[index] = updatedDocument
+  await saveDocuments(documents)
+  return updatedDocument
+}
+
+export async function deleteDocument(id: string): Promise<boolean> {
+  const documents = await getDocuments()
+  const filteredDocuments = documents.filter((doc) => doc.id !== id)
+
+  if (filteredDocuments.length === documents.length) {
+    return false // Document not found
+  }
+
+  await saveDocuments(filteredDocuments)
   return true
 }

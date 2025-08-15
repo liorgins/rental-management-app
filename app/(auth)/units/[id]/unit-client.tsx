@@ -68,7 +68,9 @@ export default function DashboardUnitClient({ id }: { id: string }) {
   const [editFormData, setEditFormData] = React.useState<Partial<Unit>>({})
 
   // Duplicate states
-  const [duplicateIncome, setDuplicateIncome] = React.useState<Income | null>(null)
+  const [duplicateIncome, setDuplicateIncome] = React.useState<Income | null>(
+    null
+  )
 
   const totalUnitExpensesYear = React.useMemo(() => {
     const y = new Date().getFullYear()
@@ -311,15 +313,19 @@ export default function DashboardUnitClient({ id }: { id: string }) {
               <IncomeForm
                 units={units}
                 defaultUnitId={unit.id}
-                prefillData={duplicateIncome ? {
-                  title: `${duplicateIncome.title} (Copy)`,
-                  amount: duplicateIncome.amount,
-                  category: duplicateIncome.category,
-                  scope: duplicateIncome.scope,
-                  unitId: duplicateIncome.unitId,
-                  recurrence: duplicateIncome.recurrence,
-                  notes: duplicateIncome.notes,
-                } : undefined}
+                prefillData={
+                  duplicateIncome
+                    ? {
+                        title: `${duplicateIncome.title} (Copy)`,
+                        amount: duplicateIncome.amount,
+                        category: duplicateIncome.category,
+                        scope: duplicateIncome.scope,
+                        unitId: duplicateIncome.unitId,
+                        recurrence: duplicateIncome.recurrence,
+                        notes: duplicateIncome.notes,
+                      }
+                    : undefined
+                }
                 onAdd={(income) => {
                   handleAddIncome(income)
                   setDuplicateIncome(null)

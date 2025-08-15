@@ -36,6 +36,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/js-yaml": "^4.0.9",
     "@upstash/redis": "^1.35.3",
+    "@vercel/blob": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "js-yaml": "^4.1.0",

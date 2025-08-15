@@ -7,7 +7,7 @@ export const sampleUnits: Unit[] = [
     property: "Commercial",
     location: "Downtown",
     address: "12 Market St",
-    monthlyRent: 8900, // ~2400 USD * 3.7
+    monthlyRent: 8900, // ~2400 NIS
     tenant: {
       name: "Blueberry Books",
       phone: "555-301-1001",
@@ -21,7 +21,7 @@ export const sampleUnits: Unit[] = [
     property: "Residential",
     location: "Northside",
     address: "101 Maple Ave, Unit 1",
-    monthlyRent: 5500, // ~1500 USD * 3.7
+    monthlyRent: 5500, // ~1500 NIS
     tenant: {
       name: "Alex Carter",
       phone: "555-301-2001",
@@ -35,7 +35,7 @@ export const sampleUnits: Unit[] = [
     property: "Residential",
     location: "Northside",
     address: "101 Maple Ave, Unit 2",
-    monthlyRent: 5700, // ~1550 USD * 3.7
+    monthlyRent: 5700, // ~1550 NIS
     tenant: {
       name: "Jamie Lee",
       phone: "555-301-2002",
@@ -49,7 +49,7 @@ export const sampleUnits: Unit[] = [
     property: "Residential",
     location: "Southside",
     address: "220 Pine St, Unit 1",
-    monthlyRent: 5200, // ~1400 USD * 3.7
+    monthlyRent: 5200, // ~1400 NIS
     tenant: {
       name: "Morgan Ruiz",
       phone: "555-301-3001",
@@ -63,7 +63,7 @@ export const sampleUnits: Unit[] = [
     property: "Residential",
     location: "Southside",
     address: "220 Pine St, Unit 2",
-    monthlyRent: 5300, // ~1425 USD * 3.7
+    monthlyRent: 5300, // ~1425 NIS
     tenant: {
       name: "Taylor Smith",
       phone: "555-301-3002",
@@ -77,7 +77,7 @@ export const seedExpenses: Expense[] = [
   {
     id: "exp-1",
     title: "Property Tax",
-    amount: 8900, // ~2400 USD * 3.7
+    amount: 8900, // ~2400 NIS
     date: `${new Date().getFullYear()}-01-05`,
     category: "Tax",
     scope: "Global",
@@ -86,7 +86,7 @@ export const seedExpenses: Expense[] = [
   {
     id: "exp-2",
     title: "Insurance",
-    amount: 4400, // ~1200 USD * 3.7
+    amount: 4400, // ~1200 NIS
     date: `${new Date().getFullYear()}-02-01`,
     category: "Insurance",
     scope: "Global",
@@ -95,7 +95,7 @@ export const seedExpenses: Expense[] = [
   {
     id: "exp-3",
     title: "HVAC Maintenance",
-    amount: 220, // ~60 USD * 3.7
+    amount: 220, // ~60 NIS
     date: `${new Date().getFullYear()}-01-01`,
     category: "Maintenance",
     scope: "Global",
@@ -104,7 +104,7 @@ export const seedExpenses: Expense[] = [
   {
     id: "exp-4",
     title: "Plumbing Fix - House A Unit 2",
-    amount: 800, // ~220 USD * 3.7
+    amount: 800, // ~220 NIS
     date: `${new Date().getFullYear()}-03-15`,
     category: "Plumbing",
     scope: "Unit",
@@ -114,7 +114,7 @@ export const seedExpenses: Expense[] = [
   {
     id: "exp-5",
     title: "Signage Upgrade - Commercial Store",
-    amount: 1700, // ~450 USD * 3.7
+    amount: 1700, // ~450 NIS
     date: `${new Date().getFullYear()}-04-10`,
     category: "Upgrade",
     scope: "Unit",

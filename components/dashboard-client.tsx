@@ -95,7 +95,13 @@ export default function DashboardClient() {
   }, [incomes, selectedUnit, selectedYear])
 
   const { annualIncome, annualExpenses, annualNet } = React.useMemo(
-    () => computeYearlyStats(selectedYear, filteredUnits, filteredExpenses, filteredIncomes),
+    () =>
+      computeYearlyStats(
+        selectedYear,
+        filteredUnits,
+        filteredExpenses,
+        filteredIncomes
+      ),
     [selectedYear, filteredUnits, filteredExpenses, filteredIncomes]
   )
 

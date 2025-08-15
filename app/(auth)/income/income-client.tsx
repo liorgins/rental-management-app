@@ -1,6 +1,12 @@
 "use client"
 
-import { IconCopy, IconEdit, IconFilter, IconTrash, IconX } from "@tabler/icons-react"
+import {
+  IconCopy,
+  IconEdit,
+  IconFilter,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -159,9 +165,9 @@ export function IncomeClient() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("he-IL", {
       style: "currency",
-      currency: "USD",
+      currency: "ILS",
     }).format(amount)
   }
 
@@ -185,21 +191,25 @@ export function IncomeClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Income</h1>
-        <IncomeForm 
-          units={units} 
-          prefillData={duplicateIncome ? {
-            title: `${duplicateIncome.title} (Copy)`,
-            amount: duplicateIncome.amount,
-            category: duplicateIncome.category,
-            scope: duplicateIncome.scope,
-            unitId: duplicateIncome.unitId,
-            recurrence: duplicateIncome.recurrence,
-            notes: duplicateIncome.notes,
-          } : undefined}
+        <IncomeForm
+          units={units}
+          prefillData={
+            duplicateIncome
+              ? {
+                  title: `${duplicateIncome.title} (Copy)`,
+                  amount: duplicateIncome.amount,
+                  category: duplicateIncome.category,
+                  scope: duplicateIncome.scope,
+                  unitId: duplicateIncome.unitId,
+                  recurrence: duplicateIncome.recurrence,
+                  notes: duplicateIncome.notes,
+                }
+              : undefined
+          }
           onAdd={(income) => {
             handleCreateIncome(income)
             setDuplicateIncome(null)
-          }} 
+          }}
         />
       </div>
 

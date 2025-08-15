@@ -2,6 +2,7 @@
 
 import {
   IconDashboard,
+  IconFile,
   IconFileDollar,
   IconHelp,
   IconInnerShadowTop,
@@ -37,6 +38,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+    },
+    {
+      title: "Documents",
+      url: "/documents",
+      icon: IconFile,
     },
     {
       title: "Expenses",

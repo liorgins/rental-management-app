@@ -69,3 +69,28 @@ export type Transaction = {
   recurrence: ExpenseRecurrence
   notes?: string
 }
+
+export type DocumentType =
+  | "Contract"
+  | "Insurance"
+  | "Maintenance"
+  | "Tax"
+  | "Invoice"
+  | "Receipt"
+  | "Other"
+
+export type Document = {
+  id: string
+  name: string
+  originalName: string
+  type: DocumentType
+  mimeType: string
+  size: number // in bytes
+  uploadDate: string
+  scope: "Global" | "Unit"
+  unitId?: string // present when scope === "Unit"
+  fileUrl: string // URL to access the file (Vercel Blob URL)
+  blobKey: string // Vercel Blob key for deletion
+  description?: string
+  tags: string[] // Dynamic tags for categorization and filtering
+}
