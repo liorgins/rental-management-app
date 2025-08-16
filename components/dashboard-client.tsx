@@ -4,8 +4,6 @@ import { IconFilter, IconX } from "@tabler/icons-react"
 import * as React from "react"
 
 import { computeYearlyStats } from "@/components/chart-cashflow"
-import { ExpensesForm } from "@/components/expenses-form"
-import { IncomeForm } from "@/components/income-form"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,10 +18,9 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { UnitsTable } from "@/components/units-table"
-import { useCreateExpense, useExpenses } from "@/hooks/use-expenses"
-import { useCreateIncome, useIncomes } from "@/hooks/use-income"
+import { useExpenses } from "@/hooks/use-expenses"
+import { useIncomes } from "@/hooks/use-income"
 import { useUnits } from "@/hooks/use-units"
-import type { Expense, Income } from "@/lib/types"
 import { formatNIS } from "@/lib/utils"
 
 export default function DashboardClient() {
@@ -37,8 +34,6 @@ export default function DashboardClient() {
   const { data: units = [], isLoading: unitsLoading } = useUnits()
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses()
   const { data: incomes = [], isLoading: incomesLoading } = useIncomes()
-  const createExpenseMutation = useCreateExpense()
-  const createIncomeMutation = useCreateIncome()
 
   // Filter data based on selected filters
   const filteredUnits = React.useMemo(() => {
@@ -104,14 +99,6 @@ export default function DashboardClient() {
       ),
     [selectedYear, filteredUnits, filteredExpenses, filteredIncomes]
   )
-
-  function handleAddExpense(exp: Expense) {
-    createExpenseMutation.mutate(exp)
-  }
-
-  function handleAddIncome(inc: Income) {
-    createIncomeMutation.mutate(inc)
-  }
 
   const monthlyRent = filteredUnits.reduce((s, u) => s + u.monthlyRent, 0)
 
@@ -238,31 +225,17 @@ export default function DashboardClient() {
       </div>
 
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Manage your rental property finances
-          </div>
-          <div className="flex items-center gap-2">
-            <IncomeForm units={units} onAdd={handleAddIncome} />
-            <ExpensesForm units={units} onAdd={handleAddExpense} />
-          </div>
-        </div>
+        <RecentTransactions
+          expenses={filteredExpenses}
+          incomes={filteredIncomes}
+          units={units}
+        />
       </div>
-
       <div className="px-4 lg:px-6">
         <UnitsTable units={filteredUnits} />
       </div>
 
       {/* <Separator className="mx-4 lg:mx-6" /> */}
-
-      <div className="px-4 lg:px-6">
-        <RecentTransactions
-          expenses={filteredExpenses}
-          incomes={filteredIncomes}
-          units={units}
-          onAddIncome={handleAddIncome}
-        />
-      </div>
     </div>
   )
 }

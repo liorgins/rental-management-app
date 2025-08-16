@@ -1,8 +1,11 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import { IconDownload, IconEdit, IconEye, IconTrash } from "@tabler/icons-react"
 import { useState } from "react"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -37,7 +40,41 @@ import {
   useDocumentTags,
   useUpdateDocument,
 } from "@/hooks/use-documents"
-import type { Document, DocumentType, Unit } from "@/lib/types"
+import type { Document, Unit } from "@/lib/types"
+
+// Validation schema for edit form
+const editDocumentSchema = z
+  .object({
+    name: z.string().min(1, "Document name is required"),
+    type: z.enum([
+      "Contract",
+      "Insurance",
+      "Maintenance",
+      "Tax",
+      "Invoice",
+      "Receipt",
+      "Other",
+    ] as const),
+    scope: z.enum(["Global", "Unit"] as const),
+    unitId: z.string().optional(),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => {
+      // If scope is "Unit", unitId is required
+      if (data.scope === "Unit" && !data.unitId) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "Unit is required when scope is Unit",
+      path: ["unitId"],
+    }
+  )
+
+type EditDocumentFormData = z.infer<typeof editDocumentSchema>
 
 type Props = {
   documents: Document[]
@@ -53,29 +90,58 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
 
   // Edit modal states
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
-  const [editFormData, setEditFormData] = useState<Partial<Document>>({})
 
   // Delete confirmation states
   const [deletingDocument, setDeletingDocument] = useState<Document | null>(
     null
   )
 
+  // Set up React Hook Form for editing
+  const editForm = useForm<EditDocumentFormData>({
+    resolver: zodResolver(editDocumentSchema),
+    defaultValues: {
+      name: "",
+      type: "Contract",
+      scope: "Global",
+      unitId: undefined,
+      description: "",
+      tags: [],
+    },
+  })
+
+  const {
+    control: editControl,
+    handleSubmit: handleEditSubmit,
+    watch: editWatch,
+    reset: editReset,
+    formState: { errors: editErrors },
+  } = editForm
+  const editScopeValue = editWatch("scope")
+
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document)
-    setEditFormData(document)
+    // Pre-populate the form with document data
+    editReset({
+      name: document.name,
+      type: document.type,
+      scope: document.scope,
+      unitId: document.unitId,
+      description: document.description || "",
+      tags: document.tags || [],
+    })
   }
 
-  const handleUpdateDocument = async () => {
-    if (!editingDocument || !editFormData) return
+  const onEditSubmit = async (data: EditDocumentFormData) => {
+    if (!editingDocument) return
 
     try {
       await updateDocumentMutation.mutateAsync({
         id: editingDocument.id,
-        updates: editFormData,
+        updates: data,
       })
       toast.success("Document updated successfully")
       setEditingDocument(null)
-      setEditFormData({})
+      editReset()
     } catch (error) {
       toast.error("Failed to update document")
       console.error(error)
@@ -268,122 +334,148 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
           {editingDocument && (
             <form
               className="grid gap-4"
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleUpdateDocument()
-              }}
+              onSubmit={handleEditSubmit(onEditSubmit)}
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="edit-name">Document Name</Label>
-                  <Input
-                    id="edit-name"
-                    value={editFormData.name || ""}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        name: e.target.value,
-                      })
-                    }
+                  <Controller
+                    name="name"
+                    control={editControl}
+                    render={({ field }) => <Input id="edit-name" {...field} />}
                   />
+                  {editErrors.name && (
+                    <span className="text-xs text-red-500">
+                      {editErrors.name.message}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Document Type</Label>
-                  <Select
-                    value={editFormData.type || ""}
-                    onValueChange={(v) =>
-                      setEditFormData({
-                        ...editFormData,
-                        type: v as DocumentType,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Contract">Contract</SelectItem>
-                      <SelectItem value="Insurance">Insurance</SelectItem>
-                      <SelectItem value="Maintenance">Maintenance</SelectItem>
-                      <SelectItem value="Tax">Tax</SelectItem>
-                      <SelectItem value="Invoice">Invoice</SelectItem>
-                      <SelectItem value="Receipt">Receipt</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="type"
+                    control={editControl}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                          <SelectItem value="Insurance">Insurance</SelectItem>
+                          <SelectItem value="Maintenance">
+                            Maintenance
+                          </SelectItem>
+                          <SelectItem value="Tax">Tax</SelectItem>
+                          <SelectItem value="Invoice">Invoice</SelectItem>
+                          <SelectItem value="Receipt">Receipt</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {editErrors.type && (
+                    <span className="text-xs text-red-500">
+                      {editErrors.type.message}
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Scope</Label>
-                  <Select
-                    value={editFormData.scope || ""}
-                    onValueChange={(v) =>
-                      setEditFormData({
-                        ...editFormData,
-                        scope: v as "Global" | "Unit",
-                        unitId:
-                          v === "Global" ? undefined : editFormData.unitId,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Global or Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Global">Global</SelectItem>
-                      <SelectItem value="Unit">Unit</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="scope"
+                    control={editControl}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Global or Unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Global">Global</SelectItem>
+                          <SelectItem value="Unit">Unit</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {editErrors.scope && (
+                    <span className="text-xs text-red-500">
+                      {editErrors.scope.message}
+                    </span>
+                  )}
                 </div>
-                {editFormData.scope === "Unit" && (
+                {editScopeValue === "Unit" && (
                   <div className="flex flex-col gap-2">
                     <Label>Unit</Label>
-                    <Select
-                      value={editFormData.unitId || ""}
-                      onValueChange={(v) =>
-                        setEditFormData({ ...editFormData, unitId: v })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
-                            {u.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="unitId"
+                      control={editControl}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {units.map((u) => (
+                              <SelectItem key={u.id} value={u.id}>
+                                {u.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {editErrors.unitId && (
+                      <span className="text-xs text-red-500">
+                        {editErrors.unitId.message}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="edit-tags">Tags</Label>
-                <TagsInput
-                  value={editFormData.tags || []}
-                  onChange={(tags) =>
-                    setEditFormData({
-                      ...editFormData,
-                      tags,
-                    })
-                  }
-                  suggestions={allTags}
-                  placeholder="Add tags (press Enter or comma to add)"
-                  maxTags={10}
+                <Controller
+                  name="tags"
+                  control={editControl}
+                  render={({ field }) => (
+                    <TagsInput
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      suggestions={allTags}
+                      placeholder="Add tags (press Enter or comma to add)"
+                      maxTags={10}
+                    />
+                  )}
                 />
+                {editErrors.tags && (
+                  <span className="text-xs text-red-500">
+                    {editErrors.tags.message}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editFormData.description || ""}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      description: e.target.value,
-                    })
-                  }
+                <Controller
+                  name="description"
+                  control={editControl}
+                  render={({ field }) => (
+                    <Textarea id="edit-description" {...field} />
+                  )}
                 />
+                {editErrors.description && (
+                  <span className="text-xs text-red-500">
+                    {editErrors.description.message}
+                  </span>
+                )}
               </div>
               <DialogFooter>
                 <Button

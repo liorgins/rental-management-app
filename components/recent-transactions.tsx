@@ -10,6 +10,7 @@ import {
   IconTrendingUp,
 } from "@tabler/icons-react"
 
+import { ExpensesForm } from "@/components/expenses-form"
 import { IncomeForm } from "@/components/income-form"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useCreateExpense } from "@/hooks/use-expenses"
+import { useCreateIncome } from "@/hooks/use-income"
 import type { Expense, Income, Transaction, Unit } from "@/lib/types"
 import { formatNIS } from "@/lib/utils"
 
@@ -28,16 +31,22 @@ interface Props {
   expenses: Expense[]
   incomes: Income[]
   units: Unit[]
-  onAddIncome: (income: Income) => void
 }
 
-export function RecentTransactions({
-  expenses,
-  incomes,
-  units,
-  onAddIncome,
-}: Props) {
+export function RecentTransactions({ expenses, incomes, units }: Props) {
   // Convert expenses and incomes to transactions
+
+  const createExpenseMutation = useCreateExpense()
+  const createIncomeMutation = useCreateIncome()
+
+  function handleAddExpense(exp: Expense) {
+    createExpenseMutation.mutate(exp)
+  }
+
+  function handleAddIncome(inc: Income) {
+    createIncomeMutation.mutate(inc)
+  }
+
   const transactions: Transaction[] = [
     ...expenses.map(
       (expense): Transaction => ({
@@ -131,7 +140,10 @@ export function RecentTransactions({
             </Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
-            <IncomeForm units={units} onAdd={onAddIncome} />
+            <IncomeForm units={units} onAdd={handleAddIncome} />
+          </div>
+          <div className="flex items-center gap-2">
+            <ExpensesForm units={units} onAdd={handleAddExpense} />
           </div>
         </div>
 

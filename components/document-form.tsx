@@ -1,7 +1,10 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import { IconPlus } from "@tabler/icons-react"
 import * as React from "react"
+import { Controller, useForm } from "react-hook-form"
+import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +29,42 @@ import {
 import { TagsInput } from "@/components/ui/tags-input"
 import { Textarea } from "@/components/ui/textarea"
 import { useDocumentTags } from "@/hooks/use-documents"
-import type { DocumentType, Unit } from "@/lib/types"
+import type { Unit } from "@/lib/types"
+
+// Validation schema
+const documentFormSchema = z
+  .object({
+    name: z.string().min(1, "Document name is required"),
+    type: z.enum([
+      "Contract",
+      "Insurance",
+      "Maintenance",
+      "Tax",
+      "Invoice",
+      "Receipt",
+      "Other",
+    ] as const),
+    scope: z.enum(["Global", "Unit"] as const),
+    unitId: z.string().optional(),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    file: z.instanceof(File, { message: "File is required" }),
+  })
+  .refine(
+    (data) => {
+      // If scope is "Unit", unitId is required
+      if (data.scope === "Unit" && !data.unitId) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "Unit is required when scope is Unit",
+      path: ["unitId"],
+    }
+  )
+
+type DocumentFormData = z.infer<typeof documentFormSchema>
 
 type Props = {
   units: Unit[]
@@ -42,68 +80,88 @@ export function DocumentForm({
   isUploading = false,
 }: Props) {
   const [open, setOpen] = React.useState(false)
-  const [scope, setScope] = React.useState<"Global" | "Unit">(
-    defaultUnitId ? "Unit" : "Global"
-  )
-  const [type, setType] = React.useState<DocumentType>("Contract")
-  const [name, setName] = React.useState("")
-  const [unitId, setUnitId] = React.useState<string | undefined>(defaultUnitId)
-  const [description, setDescription] = React.useState("")
-  const [tags, setTags] = React.useState<string[]>([])
-  const [file, setFile] = React.useState<File | null>(null)
 
   const { data: tagData } = useDocumentTags()
   const allTags = tagData?.tags || []
 
+  // Set up React Hook Form with default values
+  const form = useForm<DocumentFormData>({
+    resolver: zodResolver(documentFormSchema),
+    defaultValues: {
+      name: "",
+      type: "Contract",
+      scope: defaultUnitId ? "Unit" : "Global",
+      unitId: defaultUnitId,
+      description: "",
+      tags: [],
+      file: undefined as unknown as File, // File will be set via setValue
+    },
+  })
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    formState: { errors },
+  } = form
+  const scopeValue = watch("scope")
+
+  // Handle default unit
   React.useEffect(() => {
     if (defaultUnitId) {
-      setScope("Unit")
-      setUnitId(defaultUnitId)
+      setValue("scope", "Unit")
+      setValue("unitId", defaultUnitId)
     }
-  }, [defaultUnitId])
+  }, [defaultUnitId, setValue])
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!file || !name) return
-    if (scope === "Unit" && !unitId) return
-
+  const onSubmit = async (data: DocumentFormData) => {
     const formData = new FormData()
-    formData.append("file", file)
-    formData.append("name", name)
-    formData.append("type", type)
-    formData.append("scope", scope)
-    if (scope === "Unit" && unitId) {
-      formData.append("unitId", unitId)
+    formData.append("file", data.file)
+    formData.append("name", data.name)
+    formData.append("type", data.type)
+    formData.append("scope", data.scope)
+    if (data.scope === "Unit" && data.unitId) {
+      formData.append("unitId", data.unitId)
     }
-    if (description) {
-      formData.append("description", description)
+    if (data.description) {
+      formData.append("description", data.description)
     }
-    if (tags.length > 0) {
-      formData.append("tags", tags.join(","))
+    if (data.tags && data.tags.length > 0) {
+      formData.append("tags", data.tags.join(","))
     }
 
-    onUpload(formData).then(() => {
+    try {
+      await onUpload(formData)
       setOpen(false)
       // Reset form
-      setName("")
-      setDescription("")
-      setTags([])
-      setFile(null)
-      setType("Contract")
-      if (!defaultUnitId) setScope("Global")
-    })
+      reset({
+        name: "",
+        type: "Contract",
+        scope: defaultUnitId ? "Unit" : "Global",
+        unitId: defaultUnitId,
+        description: "",
+        tags: [],
+        file: undefined as unknown as File,
+      })
+    } catch (error) {
+      // Handle error if needed
+      console.error("Upload failed:", error)
+    }
   }
 
   function handleFilesChange(files: File[]) {
     const selectedFile = files[0]
     if (selectedFile) {
-      setFile(selectedFile)
+      setValue("file", selectedFile)
       // Auto-fill name with filename if not already set
-      if (!name) {
-        setName(selectedFile.name.replace(/\.[^/.]+$/, "")) // Remove extension
+      const currentName = watch("name")
+      if (!currentName) {
+        setValue("name", selectedFile.name.replace(/\.[^/.]+$/, "")) // Remove extension
       }
     } else {
-      setFile(null)
+      setValue("file", undefined as unknown as File)
     }
   }
 
@@ -122,7 +180,7 @@ export function DocumentForm({
             Upload a document and associate it with a unit or mark it as global.
           </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-4" onSubmit={handleSubmit}>
+        <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2 sm:col-span-2">
               <Label>File</Label>
@@ -140,90 +198,153 @@ export function DocumentForm({
                 ]}
                 onFilesChange={handleFilesChange}
               />
+              {errors.file && (
+                <span className="text-xs text-red-500">
+                  {errors.file.message}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="name">Document Name</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Lease Agreement"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="name"
+                    placeholder="e.g., Lease Agreement"
+                    {...field}
+                  />
+                )}
               />
+              {errors.name && (
+                <span className="text-xs text-red-500">
+                  {errors.name.message}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <Label>Document Type</Label>
-              <Select
-                value={type}
-                onValueChange={(v) => setType(v as DocumentType)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Contract">Contract</SelectItem>
-                  <SelectItem value="Insurance">Insurance</SelectItem>
-                  <SelectItem value="Maintenance">Maintenance</SelectItem>
-                  <SelectItem value="Tax">Tax</SelectItem>
-                  <SelectItem value="Invoice">Invoice</SelectItem>
-                  <SelectItem value="Receipt">Receipt</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Contract">Contract</SelectItem>
+                      <SelectItem value="Insurance">Insurance</SelectItem>
+                      <SelectItem value="Maintenance">Maintenance</SelectItem>
+                      <SelectItem value="Tax">Tax</SelectItem>
+                      <SelectItem value="Invoice">Invoice</SelectItem>
+                      <SelectItem value="Receipt">Receipt</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.type && (
+                <span className="text-xs text-red-500">
+                  {errors.type.message}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <Label>Scope</Label>
-              <Select
-                value={scope}
-                onValueChange={(v) => setScope(v as "Global" | "Unit")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Global or Unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Global">Global</SelectItem>
-                  <SelectItem value="Unit">Unit</SelectItem>
-                </SelectContent>
-              </Select>
+              <Controller
+                name="scope"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Global or Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Global">Global</SelectItem>
+                      <SelectItem value="Unit">Unit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.scope && (
+                <span className="text-xs text-red-500">
+                  {errors.scope.message}
+                </span>
+              )}
             </div>
-            {scope === "Unit" && (
+            {scopeValue === "Unit" && (
               <div className="flex flex-col gap-2 sm:col-span-2">
                 <Label>Unit</Label>
-                <Select value={unitId} onValueChange={(v) => setUnitId(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="unitId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.unitId && (
+                  <span className="text-xs text-red-500">
+                    {errors.unitId.message}
+                  </span>
+                )}
               </div>
             )}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="tags">Tags (Optional)</Label>
-            <TagsInput
-              value={tags}
-              onChange={setTags}
-              suggestions={allTags}
-              placeholder="Add tags (press Enter or comma to add)"
-              maxTags={10}
+            <Controller
+              name="tags"
+              control={control}
+              render={({ field }) => (
+                <TagsInput
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  suggestions={allTags}
+                  placeholder="Add tags (press Enter or comma to add)"
+                  maxTags={10}
+                />
+              )}
             />
+            {errors.tags && (
+              <span className="text-xs text-red-500">
+                {errors.tags.message}
+              </span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              placeholder="Additional notes about this document"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <Textarea
+                  id="description"
+                  placeholder="Additional notes about this document"
+                  {...field}
+                />
+              )}
             />
+            {errors.description && (
+              <span className="text-xs text-red-500">
+                {errors.description.message}
+              </span>
+            )}
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={!file || !name || isUploading}>
+            <Button type="submit" disabled={isUploading}>
               {isUploading ? "Uploading..." : "Upload Document"}
             </Button>
           </DialogFooter>
