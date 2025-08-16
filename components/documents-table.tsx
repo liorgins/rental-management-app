@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table"
 import { TagsInput } from "@/components/ui/tags-input"
 import { Textarea } from "@/components/ui/textarea"
+import { TruncatedText } from "@/components/ui/truncated-text"
 import {
   useDeleteDocument,
   useDocumentTags,
@@ -239,7 +240,9 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
             ) : (
               documents.map((document) => (
                 <TableRow key={document.id}>
-                  <TableCell className="font-medium">{document.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <TruncatedText text={document.name} maxWidth="200px" />
+                  </TableCell>
                   <TableCell>{document.type}</TableCell>
                   <TableCell>{formatFileSize(document.size)}</TableCell>
                   <TableCell>{formatDate(document.uploadDate)}</TableCell>
@@ -270,7 +273,10 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {document.description || "-"}
+                    <TruncatedText
+                      text={document.description || "-"}
+                      maxWidth="200px"
+                    />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">

@@ -1,11 +1,13 @@
 "use client"
 
-import { IconEdit, IconFilter, IconTrash, IconX } from "@tabler/icons-react"
+import { IconEdit, IconTrash } from "@tabler/icons-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { ExpensesForm } from "@/components/expenses-form"
+import { FilterSection, type FilterGroup } from "@/components/filter-section"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -38,6 +40,7 @@ import {
   useExpenses,
   useUpdateExpense,
 } from "@/hooks/use-expenses"
+import { useFilters } from "@/hooks/use-filters"
 import { useUnits } from "@/hooks/use-units"
 import type {
   Expense,
@@ -53,11 +56,24 @@ export function ExpensesClient() {
   const updateExpenseMutation = useUpdateExpense()
   const deleteExpenseMutation = useDeleteExpense()
 
-  // Filter states
-  const [unitFilter, setUnitFilter] = useState<string>("all")
-  const [scopeFilter, setScopeFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [searchFilter, setSearchFilter] = useState("")
+  // Filter management
+  const {
+    filters,
+    searchTerm,
+    activeFilters,
+
+    updateFilter,
+    setSearchTerm,
+    removeFilter,
+    clearAllFilters,
+  } = useFilters({
+    getDisplayValue: (key, value) => {
+      if (key === "unitId") {
+        return getUnitName(value)
+      }
+      return value
+    },
+  })
 
   // Edit modal states
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
@@ -66,23 +82,65 @@ export function ExpensesClient() {
   // Delete confirmation states
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null)
 
+  // Filter configuration
+  const filterGroups: FilterGroup[] = [
+    {
+      title: "Basic Filters",
+      fields: [
+        {
+          key: "category",
+          label: "Category",
+          type: "select",
+          options: [
+            { value: "Repair", label: "Repair" },
+            { value: "Upgrade", label: "Upgrade" },
+            { value: "Plumbing", label: "Plumbing" },
+            { value: "HVAC", label: "HVAC" },
+            { value: "Renovation", label: "Renovation" },
+            { value: "Insurance", label: "Insurance" },
+            { value: "Tax", label: "Tax" },
+            { value: "Maintenance", label: "Maintenance" },
+            { value: "Other", label: "Other" },
+          ],
+        },
+        {
+          key: "scope",
+          label: "Scope",
+          type: "select",
+          options: [
+            { value: "Global", label: "Global" },
+            { value: "Unit", label: "Unit" },
+          ],
+        },
+        {
+          key: "unitId",
+          label: "Unit",
+          type: "select",
+          options: units.map((unit) => ({
+            value: unit.id,
+            label: unit.name,
+          })),
+        },
+      ],
+    },
+  ]
+
   // Filter expenses based on current filters
   const filteredExpenses = expenses.filter((expense) => {
     // Unit filter
-    if (unitFilter !== "all" && expense.unitId !== unitFilter) return false
+    if (filters.unitId && expense.unitId !== filters.unitId) return false
 
     // Scope filter
-    if (scopeFilter !== "all" && expense.scope !== scopeFilter) return false
+    if (filters.scope && expense.scope !== filters.scope) return false
 
     // Category filter
-    if (categoryFilter !== "all" && expense.category !== categoryFilter)
-      return false
+    if (filters.category && expense.category !== filters.category) return false
 
     // Search filter
     if (
-      searchFilter &&
-      !expense.title.toLowerCase().includes(searchFilter.toLowerCase()) &&
-      !expense.notes?.toLowerCase().includes(searchFilter.toLowerCase())
+      searchTerm &&
+      !expense.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !expense.notes?.toLowerCase().includes(searchTerm.toLowerCase())
     )
       return false
 
@@ -138,13 +196,6 @@ export function ExpensesClient() {
     }
   }
 
-  const resetFilters = () => {
-    setUnitFilter("all")
-    setScopeFilter("all")
-    setCategoryFilter("all")
-    setSearchFilter("")
-  }
-
   const getUnitName = (unitId?: string) => {
     if (!unitId) return "N/A"
     const unit = units.find((u) => u.id === unitId)
@@ -182,102 +233,21 @@ export function ExpensesClient() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-lg border p-4">
-        <div className="flex items-center gap-2">
-          <IconFilter className="h-4 w-4" />
-          <span className="text-sm font-medium">Filters</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-            className="ml-auto h-8"
-          >
-            <IconX className="h-4 w-4" />
-            Clear
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          {/* Search */}
-          <div>
-            <Label htmlFor="search" className="text-xs">
-              Search
-            </Label>
-            <Input
-              id="search"
-              placeholder="Search title or notes..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="h-8"
-            />
-          </div>
-
-          {/* Unit Filter */}
-          <div>
-            <Label className="text-xs">Unit</Label>
-            <Select value={unitFilter} onValueChange={setUnitFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All units" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Units</SelectItem>
-                {units.map((unit) => (
-                  <SelectItem key={unit.id} value={unit.id}>
-                    {unit.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Scope Filter */}
-          <div>
-            <Label className="text-xs">Scope</Label>
-            <Select value={scopeFilter} onValueChange={setScopeFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All scopes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Scopes</SelectItem>
-                <SelectItem value="Global">Global</SelectItem>
-                <SelectItem value="Unit">Unit</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category Filter */}
-          <div>
-            <Label className="text-xs">Category</Label>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {[
-                  "Repair",
-                  "Upgrade",
-                  "Plumbing",
-                  "HVAC",
-                  "Renovation",
-                  "Insurance",
-                  "Tax",
-                  "Maintenance",
-                  "Other",
-                ].map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <FilterSection
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search title or notes..."
+        filterGroups={filterGroups}
+        filters={filters}
+        onFilterChange={updateFilter}
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAllFilters={clearAllFilters}
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Total Expenses
           </div>
@@ -287,13 +257,13 @@ export function ExpensesClient() {
             )}
           </div>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Total Items
           </div>
           <div className="text-2xl font-bold">{filteredExpenses.length}</div>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Average Amount
           </div>
@@ -310,78 +280,85 @@ export function ExpensesClient() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Scope</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Recurrence</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredExpenses.length === 0 ? (
+      <Card>
+        <CardHeader>
+          <CardTitle>Expenses</CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 sm:px-6">
+          {/* <div className="rounded-lg border"> */}
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
-                  No expenses found.
-                </TableCell>
+                <TableHead>Title</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Scope</TableHead>
+                <TableHead>Unit</TableHead>
+                <TableHead>Recurrence</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredExpenses.map((expense) => (
-                <TableRow key={expense.id}>
-                  <TableCell className="font-medium">{expense.title}</TableCell>
-                  <TableCell>{formatCurrency(expense.amount)}</TableCell>
-                  <TableCell>{formatDate(expense.date)}</TableCell>
-                  <TableCell>{expense.category}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        expense.scope === "Global"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {expense.scope}
-                    </span>
-                  </TableCell>
-                  <TableCell>{getUnitName(expense.unitId)}</TableCell>
-                  <TableCell>{expense.recurrence}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {expense.notes || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleEditExpense(expense)}
-                      >
-                        <IconEdit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteExpense(expense)}
-                      >
-                        <IconTrash className="h-4 w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {filteredExpenses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-24 text-center">
+                    No expenses found.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                filteredExpenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="font-medium">
+                      {expense.title}
+                    </TableCell>
+                    <TableCell>{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell>{formatDate(expense.date)}</TableCell>
+                    <TableCell>{expense.category}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          expense.scope === "Global"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {expense.scope}
+                      </span>
+                    </TableCell>
+                    <TableCell>{getUnitName(expense.unitId)}</TableCell>
+                    <TableCell>{expense.recurrence}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {expense.notes || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEditExpense(expense)}
+                        >
+                          <IconEdit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteExpense(expense)}
+                        >
+                          <IconTrash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Edit Expense Dialog */}
       <Dialog

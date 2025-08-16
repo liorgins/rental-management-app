@@ -1,0 +1,32 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Building base -->
+  <rect x="4" y="12" width="24" height="16" fill="#2563eb" rx="1"/>
+  
+  <!-- Building top -->
+  <rect x="6" y="8" width="20" height="8" fill="#3b82f6" rx="1"/>
+  
+  <!-- Roof -->
+  <path d="M16 4L8 10h16L16 4z" fill="#1d4ed8"/>
+  
+  <!-- Windows row 1 -->
+  <rect x="8" y="10" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="12" y="10" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="18" y="10" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="22" y="10" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Windows row 2 -->
+  <rect x="8" y="14" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="12" y="14" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="18" y="14" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="22" y="14" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Windows row 3 -->
+  <rect x="8" y="18" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="12" y="18" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="18" y="18" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  <rect x="22" y="18" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Door -->
+  <rect x="14" y="22" width="4" height="6" fill="#ffffff" opacity="0.9"/>
+  <circle cx="16.5" cy="25" r="0.5" fill="#2563eb"/>
+</svg>

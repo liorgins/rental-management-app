@@ -1,17 +1,13 @@
 "use client"
 
-import {
-  IconCopy,
-  IconEdit,
-  IconFilter,
-  IconTrash,
-  IconX,
-} from "@tabler/icons-react"
+import { IconCopy, IconEdit, IconTrash } from "@tabler/icons-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { FilterSection, type FilterGroup } from "@/components/filter-section"
 import { IncomeForm } from "@/components/income-form"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -38,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { useFilters } from "@/hooks/use-filters"
 import {
   useCreateIncome,
   useDeleteIncome,
@@ -59,11 +56,23 @@ export function IncomeClient() {
   const updateIncomeMutation = useUpdateIncome()
   const deleteIncomeMutation = useDeleteIncome()
 
-  // Filter states
-  const [unitFilter, setUnitFilter] = useState<string>("all")
-  const [scopeFilter, setScopeFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [searchFilter, setSearchFilter] = useState("")
+  // Filter management
+  const {
+    filters,
+    searchTerm,
+    activeFilters,
+    updateFilter,
+    setSearchTerm,
+    removeFilter,
+    clearAllFilters,
+  } = useFilters({
+    getDisplayValue: (key, value) => {
+      if (key === "unitId") {
+        return getUnitName(value)
+      }
+      return value
+    },
+  })
 
   // Edit modal states
   const [editingIncome, setEditingIncome] = useState<Income | null>(null)
@@ -75,23 +84,60 @@ export function IncomeClient() {
   // Duplicate states
   const [duplicateIncome, setDuplicateIncome] = useState<Income | null>(null)
 
+  // Filter configuration
+  const filterGroups: FilterGroup[] = [
+    {
+      title: "Basic Filters",
+      fields: [
+        {
+          key: "category",
+          label: "Category",
+          type: "select",
+          options: [
+            { value: "Rent", label: "Rent" },
+            { value: "Taxes", label: "Taxes" },
+            { value: "Fees", label: "Fees" },
+            { value: "Other", label: "Other" },
+          ],
+        },
+        {
+          key: "scope",
+          label: "Scope",
+          type: "select",
+          options: [
+            { value: "Global", label: "Global" },
+            { value: "Unit", label: "Unit" },
+          ],
+        },
+        {
+          key: "unitId",
+          label: "Unit",
+          type: "select",
+          options: units.map((unit) => ({
+            value: unit.id,
+            label: unit.name,
+          })),
+        },
+      ],
+    },
+  ]
+
   // Filter incomes based on current filters
   const filteredIncomes = incomes.filter((income) => {
     // Unit filter
-    if (unitFilter !== "all" && income.unitId !== unitFilter) return false
+    if (filters.unitId && income.unitId !== filters.unitId) return false
 
     // Scope filter
-    if (scopeFilter !== "all" && income.scope !== scopeFilter) return false
+    if (filters.scope && income.scope !== filters.scope) return false
 
     // Category filter
-    if (categoryFilter !== "all" && income.category !== categoryFilter)
-      return false
+    if (filters.category && income.category !== filters.category) return false
 
     // Search filter
     if (
-      searchFilter &&
-      !income.title.toLowerCase().includes(searchFilter.toLowerCase()) &&
-      !income.notes?.toLowerCase().includes(searchFilter.toLowerCase())
+      searchTerm &&
+      !income.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !income.notes?.toLowerCase().includes(searchTerm.toLowerCase())
     )
       return false
 
@@ -151,13 +197,6 @@ export function IncomeClient() {
     setDuplicateIncome(income)
   }
 
-  const resetFilters = () => {
-    setUnitFilter("all")
-    setScopeFilter("all")
-    setCategoryFilter("all")
-    setSearchFilter("")
-  }
-
   const getUnitName = (unitId?: string) => {
     if (!unitId) return "N/A"
     const unit = units.find((u) => u.id === unitId)
@@ -214,92 +253,21 @@ export function IncomeClient() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 rounded-lg border p-4">
-        <div className="flex items-center gap-2">
-          <IconFilter className="h-4 w-4" />
-          <span className="text-sm font-medium">Filters</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-            className="ml-auto h-8"
-          >
-            <IconX className="h-4 w-4" />
-            Clear
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          {/* Search */}
-          <div>
-            <Label htmlFor="search" className="text-xs">
-              Search
-            </Label>
-            <Input
-              id="search"
-              placeholder="Search title or notes..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="h-8"
-            />
-          </div>
-
-          {/* Unit Filter */}
-          <div>
-            <Label className="text-xs">Unit</Label>
-            <Select value={unitFilter} onValueChange={setUnitFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All units" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Units</SelectItem>
-                {units.map((unit) => (
-                  <SelectItem key={unit.id} value={unit.id}>
-                    {unit.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Scope Filter */}
-          <div>
-            <Label className="text-xs">Scope</Label>
-            <Select value={scopeFilter} onValueChange={setScopeFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All scopes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Scopes</SelectItem>
-                <SelectItem value="Global">Global</SelectItem>
-                <SelectItem value="Unit">Unit</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category Filter */}
-          <div>
-            <Label className="text-xs">Category</Label>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {["Rent", "Taxes", "Fees", "Other"].map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <FilterSection
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search title or notes..."
+        filterGroups={filterGroups}
+        filters={filters}
+        onFilterChange={updateFilter}
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAllFilters={clearAllFilters}
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Total Income
           </div>
@@ -309,13 +277,13 @@ export function IncomeClient() {
             )}
           </div>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Total Items
           </div>
           <div className="text-2xl font-bold">{filteredIncomes.length}</div>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className="rounded-lg border bg-card p-4">
           <div className="text-sm font-medium text-muted-foreground">
             Average Amount
           </div>
@@ -332,89 +300,95 @@ export function IncomeClient() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Scope</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Recurrence</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredIncomes.length === 0 ? (
+      <Card>
+        <CardHeader>
+          <CardTitle>Income</CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 sm:px-6">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
-                  No income found.
-                </TableCell>
+                <TableHead>Title</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Scope</TableHead>
+                <TableHead>Unit</TableHead>
+                <TableHead>Recurrence</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredIncomes.map((income) => (
-                <TableRow key={income.id}>
-                  <TableCell className="font-medium">{income.title}</TableCell>
-                  <TableCell>{formatCurrency(income.amount)}</TableCell>
-                  <TableCell>{formatDate(income.date)}</TableCell>
-                  <TableCell>{income.category}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        income.scope === "Global"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {income.scope}
-                    </span>
-                  </TableCell>
-                  <TableCell>{getUnitName(income.unitId)}</TableCell>
-                  <TableCell>{income.recurrence}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {income.notes || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleDuplicateIncome(income)}
-                        title="Duplicate income"
-                      >
-                        <IconCopy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleEditIncome(income)}
-                        title="Edit income"
-                      >
-                        <IconEdit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteIncome(income)}
-                        title="Delete income"
-                      >
-                        <IconTrash className="h-4 w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {filteredIncomes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-24 text-center">
+                    No income found.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                filteredIncomes.map((income) => (
+                  <TableRow key={income.id}>
+                    <TableCell className="font-medium">
+                      {income.title}
+                    </TableCell>
+                    <TableCell>{formatCurrency(income.amount)}</TableCell>
+                    <TableCell>{formatDate(income.date)}</TableCell>
+                    <TableCell>{income.category}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          income.scope === "Global"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {income.scope}
+                      </span>
+                    </TableCell>
+                    <TableCell>{getUnitName(income.unitId)}</TableCell>
+                    <TableCell>{income.recurrence}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {income.notes || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleDuplicateIncome(income)}
+                          title="Duplicate income"
+                        >
+                          <IconCopy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEditIncome(income)}
+                          title="Edit income"
+                        >
+                          <IconEdit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteIncome(income)}
+                          title="Delete income"
+                        >
+                          <IconTrash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Edit Income Dialog */}
       <Dialog

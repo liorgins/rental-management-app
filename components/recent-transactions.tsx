@@ -139,10 +139,9 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
               {recentTransactions.length} items
             </Badge>
           </CardTitle>
+
           <div className="flex items-center gap-2">
             <IncomeForm units={units} onAdd={handleAddIncome} />
-          </div>
-          <div className="flex items-center gap-2">
             <ExpensesForm units={units} onAdd={handleAddExpense} />
           </div>
         </div>
