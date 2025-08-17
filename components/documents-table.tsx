@@ -2,9 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { IconDownload, IconEdit, IconEye, IconTrash } from "@tabler/icons-react"
+import { useSnackbar } from "notistack"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
@@ -88,6 +88,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
   const deleteDocumentMutation = useDeleteDocument()
   const { data: tagData } = useDocumentTags()
   const allTags = tagData?.tags || []
+  const { enqueueSnackbar } = useSnackbar()
 
   // Edit modal states
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
@@ -140,11 +141,11 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
         id: editingDocument.id,
         updates: data,
       })
-      toast.success("Document updated successfully")
+      enqueueSnackbar("Document updated successfully")
       setEditingDocument(null)
       editReset()
     } catch (error) {
-      toast.error("Failed to update document")
+      enqueueSnackbar("Failed to update document", { variant: "error" })
       console.error(error)
     }
   }
@@ -158,10 +159,10 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
 
     try {
       await deleteDocumentMutation.mutateAsync(deletingDocument.id)
-      toast.success("Document deleted successfully")
+      enqueueSnackbar("Document deleted successfully")
       setDeletingDocument(null)
     } catch (error) {
-      toast.error("Failed to delete document")
+      enqueueSnackbar("Failed to delete document", { variant: "error" })
       console.error(error)
     }
   }

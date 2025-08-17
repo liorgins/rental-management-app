@@ -1,6 +1,6 @@
 "use client"
 
-import { toast } from "sonner"
+import { useSnackbar } from "notistack"
 
 import { DocumentForm } from "@/components/document-form"
 import { DocumentsTable } from "@/components/documents-table"
@@ -19,6 +19,7 @@ export function DocumentsClient() {
   const { data: units = [] } = useUnits()
   const { data: tagData } = useDocumentTags()
   const allTags = tagData?.tags || []
+  const { enqueueSnackbar } = useSnackbar()
 
   // Filter management
   const {
@@ -66,10 +67,10 @@ export function DocumentsClient() {
   const handleCreateDocument = async (formData: FormData) => {
     try {
       await createDocumentMutation.mutateAsync(formData)
-      toast.success("Document uploaded successfully!")
+      enqueueSnackbar("Document uploaded successfully!")
     } catch (error) {
       console.error("Failed to create document:", error)
-      toast.error("Failed to upload document")
+      enqueueSnackbar("Failed to upload document", { variant: "error" })
     }
   }
 

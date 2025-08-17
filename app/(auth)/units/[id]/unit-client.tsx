@@ -10,8 +10,8 @@ import {
   IconWallet,
 } from "@tabler/icons-react"
 import { notFound } from "next/navigation"
+import { enqueueSnackbar } from "notistack"
 import * as React from "react"
-import { toast } from "sonner"
 
 import { ExpensesForm } from "@/components/expenses-form"
 import { IncomeForm } from "@/components/income-form"
@@ -104,6 +104,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
 
   function handleAddIncome(inc: Income) {
     createIncomeMutation.mutate(inc)
+    enqueueSnackbar("Income added successfully")
   }
 
   const handleDuplicateIncome = (income: Income) => {
@@ -144,10 +145,10 @@ export default function DashboardUnitClient({ id }: { id: string }) {
           contractEnd: editFormData.contractEnd || undefined,
         },
       })
-      toast.success("Unit updated successfully")
+      enqueueSnackbar("Unit updated successfully")
       setIsEditModalOpen(false)
     } catch (error) {
-      toast.error("Failed to update unit")
+      enqueueSnackbar("Failed to update unit", { variant: "error" })
       console.error(error)
     }
   }

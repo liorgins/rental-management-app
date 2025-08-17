@@ -48,9 +48,9 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table"
+import { useSnackbar } from "notistack"
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import { toast } from "sonner"
 import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
@@ -131,7 +131,9 @@ function DragHandle({ id }: { id: number }) {
   )
 }
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
+const createColumns = (
+  enqueueSnackbar: (message: string, options?: { variant?: "error" }) => void
+): ColumnDef<z.infer<typeof schema>>[] => [
   {
     id: "drag",
     header: () => null,
@@ -201,13 +203,15 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: () => <div className="w-full text-right">Target</div>,
     cell: ({ row }) => (
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
+          enqueueSnackbar(`Saving ${row.original.header}`)
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            enqueueSnackbar("Done")
+          } catch (error) {
+            enqueueSnackbar(`Error: ${error}`, { variant: "error" })
+          }
         }}
       >
         <Label htmlFor={`${row.original.id}-target`} className="sr-only">
@@ -226,13 +230,15 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: () => <div className="w-full text-right">Limit</div>,
     cell: ({ row }) => (
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          })
+          enqueueSnackbar(`Saving ${row.original.header}`)
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            enqueueSnackbar("Done")
+          } catch (error) {
+            enqueueSnackbar(`Error: ${error}`, { variant: "error" })
+          }
         }}
       >
         <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
@@ -337,6 +343,7 @@ export function DataTable({
   data: z.infer<typeof schema>[]
 }) {
   const [data, setData] = React.useState(() => initialData)
+  const { enqueueSnackbar } = useSnackbar()
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -359,6 +366,8 @@ export function DataTable({
     () => data?.map(({ id }) => id) || [],
     [data]
   )
+
+  const columns = createColumns(enqueueSnackbar)
 
   const table = useReactTable({
     data,

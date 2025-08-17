@@ -1,8 +1,8 @@
 "use client"
 
 import { IconCopy, IconEdit, IconTrash } from "@tabler/icons-react"
+import { useSnackbar } from "notistack"
 import { useState } from "react"
-import { toast } from "sonner"
 
 import { FilterSection, type FilterGroup } from "@/components/filter-section"
 import { IncomeForm } from "@/components/income-form"
@@ -55,6 +55,7 @@ export function IncomeClient() {
   const createIncomeMutation = useCreateIncome()
   const updateIncomeMutation = useUpdateIncome()
   const deleteIncomeMutation = useDeleteIncome()
+  const { enqueueSnackbar } = useSnackbar()
 
   // Filter management
   const {
@@ -147,9 +148,9 @@ export function IncomeClient() {
   const handleCreateIncome = async (income: Income) => {
     try {
       await createIncomeMutation.mutateAsync(income)
-      toast.success("Income created successfully")
+      enqueueSnackbar("Income created successfully")
     } catch (error) {
-      toast.error("Failed to create income")
+      enqueueSnackbar("Failed to create income", { variant: "error" })
       console.error(error)
     }
   }
@@ -167,11 +168,11 @@ export function IncomeClient() {
         id: editingIncome.id,
         updates: editFormData,
       })
-      toast.success("Income updated successfully")
+      enqueueSnackbar("Income updated successfully")
       setEditingIncome(null)
       setEditFormData({})
     } catch (error) {
-      toast.error("Failed to update income")
+      enqueueSnackbar("Failed to update income", { variant: "error" })
       console.error(error)
     }
   }
@@ -185,10 +186,10 @@ export function IncomeClient() {
 
     try {
       await deleteIncomeMutation.mutateAsync(deletingIncome.id)
-      toast.success("Income deleted successfully")
+      enqueueSnackbar("Income deleted successfully")
       setDeletingIncome(null)
     } catch (error) {
-      toast.error("Failed to delete income")
+      enqueueSnackbar("Failed to delete income", { variant: "error" })
       console.error(error)
     }
   }

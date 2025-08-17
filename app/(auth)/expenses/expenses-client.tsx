@@ -1,8 +1,8 @@
 "use client"
 
 import { IconEdit, IconTrash } from "@tabler/icons-react"
+import { useSnackbar } from "notistack"
 import { useState } from "react"
-import { toast } from "sonner"
 
 import { ExpensesForm } from "@/components/expenses-form"
 import { FilterSection, type FilterGroup } from "@/components/filter-section"
@@ -55,6 +55,7 @@ export function ExpensesClient() {
   const createExpenseMutation = useCreateExpense()
   const updateExpenseMutation = useUpdateExpense()
   const deleteExpenseMutation = useDeleteExpense()
+  const { enqueueSnackbar } = useSnackbar()
 
   // Filter management
   const {
@@ -150,9 +151,9 @@ export function ExpensesClient() {
   const handleCreateExpense = async (expense: Expense) => {
     try {
       await createExpenseMutation.mutateAsync(expense)
-      toast.success("Expense created successfully")
+      enqueueSnackbar("Expense created successfully")
     } catch (error) {
-      toast.error("Failed to create expense")
+      enqueueSnackbar("Failed to create expense", { variant: "error" })
       console.error(error)
     }
   }
@@ -170,11 +171,11 @@ export function ExpensesClient() {
         id: editingExpense.id,
         updates: editFormData,
       })
-      toast.success("Expense updated successfully")
+      enqueueSnackbar("Expense updated successfully")
       setEditingExpense(null)
       setEditFormData({})
     } catch (error) {
-      toast.error("Failed to update expense")
+      enqueueSnackbar("Failed to update expense", { variant: "error" })
       console.error(error)
     }
   }
@@ -188,10 +189,10 @@ export function ExpensesClient() {
 
     try {
       await deleteExpenseMutation.mutateAsync(deletingExpense.id)
-      toast.success("Expense deleted successfully")
+      enqueueSnackbar("Expense deleted successfully")
       setDeletingExpense(null)
     } catch (error) {
-      toast.error("Failed to delete expense")
+      enqueueSnackbar("Failed to delete expense", { variant: "error" })
       console.error(error)
     }
   }
