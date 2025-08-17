@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running lint on staged files..."
+npm run lint
+
+if [ $? -ne 0 ]; then
+  echo "❌ Lint failed. Please fix the issues before committing."
+  exit 1
+fi
+
+echo "✅ Lint passed! Proceeding with commit..."

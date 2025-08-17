@@ -15,7 +15,8 @@
     "generate-vapid-keys": "node scripts/generate-vapid-keys.js",
     "cron:local": "node scripts/local-cron.js",
     "cron:trigger": "curl -X POST http://localhost:3000/api/tasks/reminders -H \"Authorization: Bearer 14903b8131783cb701edfb12976f35c9401cf4e9b88cd13565212f896a9476e1\"",
-    "cron:status": "curl http://localhost:3000/api/cron/status"
+    "cron:status": "curl http://localhost:3000/api/cron/status",
+    "prepare": "husky"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -73,6 +74,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "eslint-plugin-import": "^2.32.0",
+    "husky": "^9.1.7",
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
