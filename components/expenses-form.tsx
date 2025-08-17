@@ -168,9 +168,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.title && (
-                <span className="text-xs text-red-500">
-                  {errors.title.message}
-                </span>
+                <span className="text-red-500">{errors.title.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -193,9 +191,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.amount && (
-                <span className="text-xs text-red-500">
-                  {errors.amount.message}
-                </span>
+                <span className="text-red-500">{errors.amount.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -208,9 +204,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.date && (
-                <span className="text-xs text-red-500">
-                  {errors.date.message}
-                </span>
+                <span className="text-red-500">{errors.date.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -244,9 +238,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.category && (
-                <span className="text-xs text-red-500">
-                  {errors.category.message}
-                </span>
+                <span className="text-red-500">{errors.category.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -267,9 +259,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.scope && (
-                <span className="text-xs text-red-500">
-                  {errors.scope.message}
-                </span>
+                <span className="text-red-500">{errors.scope.message}</span>
               )}
             </div>
             {scopeValue === "Unit" && (
@@ -294,9 +284,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                   )}
                 />
                 {errors.unitId && (
-                  <span className="text-xs text-red-500">
-                    {errors.unitId.message}
-                  </span>
+                  <span className="text-red-500">{errors.unitId.message}</span>
                 )}
               </div>
             )}
@@ -319,7 +307,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
                 )}
               />
               {errors.recurrence && (
-                <span className="text-xs text-red-500">
+                <span className="text-red-500">
                   {errors.recurrence.message}
                 </span>
               )}
@@ -335,9 +323,7 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
               )}
             />
             {errors.notes && (
-              <span className="text-xs text-red-500">
-                {errors.notes.message}
-              </span>
+              <span className="text-red-500">{errors.notes.message}</span>
             )}
           </div>
           <DialogFooter>

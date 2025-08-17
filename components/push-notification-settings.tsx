@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
 import { Bell, BellOff, Send, Settings } from "lucide-react"
 import { useState } from "react"
+import { PushNotificationHelp } from "./push-notification-help"
 
 export function PushNotificationSettings() {
   const {
@@ -40,15 +41,15 @@ export function PushNotificationSettings() {
 
   const sendTestNotification = async () => {
     try {
-      const response = await fetch("/api/push/test", {
+      const response = await fetch("/api/notifications/test-push", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: "Test Notification",
-          body: "This is a test notification from your rental management app",
-          url: "/tasks",
+          title: "Test Push Notification",
+          message:
+            "This is a test notification from your rental management app. If you receive this when the browser is closed, your setup is working correctly!",
         }),
       })
 
@@ -83,7 +84,7 @@ export function PushNotificationSettings() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2 text-red-500">
             <BellOff className="h-5 w-5" />
             <span>Push notifications are not supported in your browser</span>
           </div>
@@ -95,9 +96,9 @@ export function PushNotificationSettings() {
   const getPermissionBadge = () => {
     switch (permission) {
       case "granted":
-        return <Badge className="bg-green-100 text-green-800">Granted</Badge>
+        return <Badge className="bg-green-100 text-emerald-800">Granted</Badge>
       case "denied":
-        return <Badge className="bg-red-100 text-red-800">Denied</Badge>
+        return <Badge className="bg-rose-100 text-red-500">Denied</Badge>
       default:
         return (
           <Badge className="bg-yellow-100 text-yellow-800">Not Requested</Badge>
@@ -115,12 +116,37 @@ export function PushNotificationSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Push Notification Settings
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Push Notification Settings
+          </CardTitle>
+          <PushNotificationHelp />
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Browser compatibility warning */}
+        {typeof window !== "undefined" &&
+          window.navigator.userAgent.includes("Mac") &&
+          (window.navigator.userAgent.includes("Chrome") ||
+            window.navigator.userAgent.includes("Edg")) && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-start gap-2">
+                <Bell className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-800">
+                    Browser Limitation
+                  </p>
+                  <p className="text-amber-700 mt-1">
+                    Chrome/Edge on macOS may not receive notifications when
+                    completely closed. Keep your browser minimized or see help
+                    for setup instructions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
         {/* Permission Status */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

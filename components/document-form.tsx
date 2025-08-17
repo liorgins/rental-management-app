@@ -199,9 +199,7 @@ export function DocumentForm({
                 onFilesChange={handleFilesChange}
               />
               {errors.file && (
-                <span className="text-xs text-red-500">
-                  {errors.file.message}
-                </span>
+                <span className="text-red-500">{errors.file.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -218,9 +216,7 @@ export function DocumentForm({
                 )}
               />
               {errors.name && (
-                <span className="text-xs text-red-500">
-                  {errors.name.message}
-                </span>
+                <span className="text-red-500">{errors.name.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -246,9 +242,7 @@ export function DocumentForm({
                 )}
               />
               {errors.type && (
-                <span className="text-xs text-red-500">
-                  {errors.type.message}
-                </span>
+                <span className="text-red-500">{errors.type.message}</span>
               )}
             </div>
             <div className="flex flex-col gap-2">
@@ -269,9 +263,7 @@ export function DocumentForm({
                 )}
               />
               {errors.scope && (
-                <span className="text-xs text-red-500">
-                  {errors.scope.message}
-                </span>
+                <span className="text-red-500">{errors.scope.message}</span>
               )}
             </div>
             {scopeValue === "Unit" && (
@@ -296,9 +288,7 @@ export function DocumentForm({
                   )}
                 />
                 {errors.unitId && (
-                  <span className="text-xs text-red-500">
-                    {errors.unitId.message}
-                  </span>
+                  <span className="text-red-500">{errors.unitId.message}</span>
                 )}
               </div>
             )}
@@ -319,9 +309,7 @@ export function DocumentForm({
               )}
             />
             {errors.tags && (
-              <span className="text-xs text-red-500">
-                {errors.tags.message}
-              </span>
+              <span className="text-red-500">{errors.tags.message}</span>
             )}
           </div>
           <div className="flex flex-col gap-2">
@@ -338,9 +326,7 @@ export function DocumentForm({
               )}
             />
             {errors.description && (
-              <span className="text-xs text-red-500">
-                {errors.description.message}
-              </span>
+              <span className="text-red-500">{errors.description.message}</span>
             )}
           </div>
           <DialogFooter>

@@ -45,7 +45,6 @@ paths:
                 - id: "unit-1"
                   name: "Commercial Store"
                   property: "Commercial"
-                  location: "Downtown"
                   address: "123 Main St"
                   monthlyRent: 2500
                   tenant:
@@ -72,7 +71,6 @@ paths:
               id: "unit-2"
               name: "House A - Unit 1"
               property: "Residential"
-              location: "Northside"
               address: "456 Oak Ave"
               monthlyRent: 1800
               tenant:
@@ -614,7 +612,6 @@ components:
         - id
         - name
         - property
-        - location
         - address
         - monthlyRent
         - tenant
@@ -633,11 +630,7 @@ components:
           enum: [Commercial, Residential]
           description: Type of property
           example: "Commercial"
-        location:
-          type: string
-          enum: [Downtown, Northside, Southside]
-          description: Location area
-          example: "Downtown"
+
         address:
           type: string
           description: Physical address of the unit

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import { ThemeScript } from "@/components/theme-script"
 import { ReactQueryProvider } from "@/lib/react-query-provider"
+import { SnackbarProvider } from "@/lib/snackbar-provider"
 import { ThemeProvider } from "@/lib/theme-provider"
 import "./globals.css"
 
@@ -45,7 +46,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ReactQueryProvider>{children}</ReactQueryProvider>
+          <ReactQueryProvider>
+            <SnackbarProvider>{children}</SnackbarProvider>
+          </ReactQueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -97,6 +97,63 @@ export function useUpdateTask() {
   })
 }
 
+export function useUpdateTaskOptimistic() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) =>
+      updateTask(id, updates),
+
+    // Optimistic update
+    onMutate: async ({ id, updates }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["tasks"] })
+      await queryClient.cancelQueries({ queryKey: ["task", id] })
+
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"])
+      const previousTask = queryClient.getQueryData<Task>(["task", id])
+
+      // Optimistically update the tasks list
+      if (previousTasks) {
+        queryClient.setQueryData<Task[]>(["tasks"], (old) =>
+          old
+            ? old.map((task) =>
+                task.id === id ? { ...task, ...updates } : task
+              )
+            : []
+        )
+      }
+
+      // Optimistically update the individual task
+      if (previousTask) {
+        queryClient.setQueryData<Task>(["task", id], (old) =>
+          old ? { ...old, ...updates } : old
+        )
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousTasks, previousTask, id }
+    },
+
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (_err, _variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks)
+      }
+      if (context?.previousTask && context?.id) {
+        queryClient.setQueryData(["task", context.id], context.previousTask)
+      }
+    },
+
+    // Always refetch after error or success to ensure we have fresh data
+    onSettled: (_, __, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      queryClient.invalidateQueries({ queryKey: ["task", id] })
+    },
+  })
+}
+
 export function useDeleteTask() {
   const queryClient = useQueryClient()
 

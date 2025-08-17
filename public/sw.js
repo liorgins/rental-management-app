@@ -2,21 +2,38 @@
 
 const CACHE_NAME = 'rental-app-v1';
 
-// Install event
+// Install event - force immediate activation
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing');
+  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
-// Activate event
+// Activate event - claim all clients immediately
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating');
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      // Clear old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Claim all clients immediately
+      self.clients.claim()
+    ])
+  );
 });
 
 // Handle push events
 self.addEventListener('push', (event) => {
   console.log('Push event received:', event);
+  console.log('Service Worker is active and handling push event');
   
   let notificationData = {
     title: 'Task Reminder',
@@ -36,6 +53,7 @@ self.addEventListener('push', (event) => {
         ...notificationData,
         ...payload
       };
+      console.log('Parsed push payload:', payload);
     }
   } catch (error) {
     console.error('Error parsing push payload:', error);
@@ -64,10 +82,15 @@ self.addEventListener('push', (event) => {
       requireInteraction: false, // Changed to false for macOS compatibility
       silent: false, // Make sure sound is enabled
       renotify: true, // Show even if same tag exists
-      vibrate: [200, 100, 200] // Add vibration pattern
+      vibrate: [200, 100, 200], // Add vibration pattern
+      // Additional options for better visibility
+      dir: 'auto',
+      lang: 'en-US'
     }
   ).then(() => {
     console.log('Notification shown successfully');
+    // Keep service worker alive for a bit longer
+    return new Promise(resolve => setTimeout(resolve, 5000));
   }).catch((error) => {
     console.error('Error showing notification:', error);
   });

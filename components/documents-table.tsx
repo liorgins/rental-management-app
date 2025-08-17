@@ -251,7 +251,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         document.scope === "Global"
                           ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
+                          : "bg-green-100 text-emerald-800"
                       }`}
                     >
                       {document.scope}
@@ -351,7 +351,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                     render={({ field }) => <Input id="edit-name" {...field} />}
                   />
                   {editErrors.name && (
-                    <span className="text-xs text-red-500">
+                    <span className="text-red-500">
                       {editErrors.name.message}
                     </span>
                   )}
@@ -384,7 +384,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                     )}
                   />
                   {editErrors.type && (
-                    <span className="text-xs text-red-500">
+                    <span className="text-red-500">
                       {editErrors.type.message}
                     </span>
                   )}
@@ -410,7 +410,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                     )}
                   />
                   {editErrors.scope && (
-                    <span className="text-xs text-red-500">
+                    <span className="text-red-500">
                       {editErrors.scope.message}
                     </span>
                   )}
@@ -440,7 +440,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                       )}
                     />
                     {editErrors.unitId && (
-                      <span className="text-xs text-red-500">
+                      <span className="text-red-500">
                         {editErrors.unitId.message}
                       </span>
                     )}
@@ -463,7 +463,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                   )}
                 />
                 {editErrors.tags && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-red-500">
                     {editErrors.tags.message}
                   </span>
                 )}
@@ -478,7 +478,7 @@ export function DocumentsTable({ documents, units, isLoading }: Props) {
                   )}
                 />
                 {editErrors.description && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-red-500">
                     {editErrors.description.message}
                   </span>
                 )}

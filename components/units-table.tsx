@@ -28,7 +28,6 @@ export function UnitsTable({ units }: { units: Unit[] }) {
             <TableHeader className="bg-muted">
               <TableRow>
                 <TableHead>Unit</TableHead>
-                <TableHead>Location</TableHead>
                 <TableHead>Property</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead className="text-right">Monthly Rent</TableHead>
@@ -40,7 +39,6 @@ export function UnitsTable({ units }: { units: Unit[] }) {
               {units.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell>{u.name}</TableCell>
-                  <TableCell>{u.location}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{u.property}</Badge>
                   </TableCell>

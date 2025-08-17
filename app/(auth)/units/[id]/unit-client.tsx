@@ -115,7 +115,6 @@ export default function DashboardUnitClient({ id }: { id: string }) {
     setEditFormData({
       name: unit.name,
       property: unit.property,
-      location: unit.location,
       address: unit.address,
       monthlyRent: unit.monthlyRent,
       tenant: {
@@ -220,7 +219,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-2">
                 <IconMapPin className="size-4" />
-                {unit.address} ({unit.location})
+                {unit.address}
               </span>
               <span className="flex items-center gap-2">
                 <IconWallet className="size-4" />
@@ -394,7 +393,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                   <div className="text-xs text-gray-600">Due Soon</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-red-600">
+                  <div className="text-lg font-bold text-rose-600">
                     {
                       unitTasks.filter(
                         (t) =>
@@ -406,7 +405,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                   <div className="text-xs text-gray-600">Overdue</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-green-600">
+                  <div className="text-lg font-bold text-emerald-600">
                     {unitTasks.filter((t) => t.status === "Completed").length}
                   </div>
                   <div className="text-xs text-gray-600">Done</div>
@@ -580,29 +579,6 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                   <SelectContent>
                     <SelectItem value="Commercial">Commercial</SelectItem>
                     <SelectItem value="Residential">Residential</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Location */}
-              <div className="flex flex-col gap-2">
-                <Label>Location</Label>
-                <Select
-                  value={editFormData.location || ""}
-                  onValueChange={(v) =>
-                    setEditFormData({
-                      ...editFormData,
-                      location: v as "Downtown" | "Northside" | "Southside",
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Downtown">Downtown</SelectItem>
-                    <SelectItem value="Northside">Northside</SelectItem>
-                    <SelectItem value="Southside">Southside</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

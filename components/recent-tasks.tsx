@@ -16,10 +16,10 @@ import {
 import Link from "next/link"
 
 const priorityColors = {
-  Low: "bg-green-100 text-green-800",
+  Low: "bg-green-100 text-emerald-800",
   Medium: "bg-yellow-100 text-yellow-800",
   High: "bg-orange-100 text-orange-800",
-  Urgent: "bg-red-100 text-red-800",
+  Urgent: "bg-rose-100 text-red-500",
 }
 
 export function RecentTasks() {
@@ -78,13 +78,13 @@ export function RecentTasks() {
             <div className="text-xs text-gray-600">Due Soon</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-rose-600">
               {overdueTasks.length}
             </div>
             <div className="text-xs text-gray-600">Overdue</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-emerald-600">
               {allTasks.filter((t) => t.status === "Completed").length}
             </div>
             <div className="text-xs text-gray-600">Completed</div>
@@ -104,7 +104,7 @@ export function RecentTasks() {
                   key={task.id}
                   className={`flex items-center justify-between p-3 rounded-lg border ${
                     isOverdue(task)
-                      ? "bg-red-50 border-red-200"
+                      ? "bg-rose-50 border-red-200"
                       : isDueSoon(task)
                       ? "bg-yellow-50 border-yellow-200"
                       : "bg-gray-50 border-gray-200"
@@ -116,12 +116,12 @@ export function RecentTasks() {
                         <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       )}
                       {task.status === "Completed" && (
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       )}
                       <span
                         className={`text-sm font-medium truncate ${
                           task.status === "Completed"
-                            ? "line-through text-gray-500"
+                            ? "line-through text-red-500"
                             : ""
                         }`}
                       >
@@ -137,7 +137,7 @@ export function RecentTasks() {
                       <Calendar className="h-3 w-3" />
                       <span
                         className={
-                          isOverdue(task) ? "text-red-600 font-medium" : ""
+                          isOverdue(task) ? "text-rose-600 font-medium" : ""
                         }
                       >
                         Due: {format(new Date(task.dueDate), "MMM d, yyyy")}
@@ -154,7 +154,7 @@ export function RecentTasks() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-red-500">
             <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
             <p className="text-sm">No upcoming tasks</p>
             <p className="text-xs">You&apos;re all caught up!</p>
@@ -162,13 +162,13 @@ export function RecentTasks() {
         )}
 
         {overdueTasks.length > 0 && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700 font-medium text-sm">
+          <div className="mt-4 p-3 bg-rose-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-rose-700 font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
               {overdueTasks.length} overdue task
               {overdueTasks.length > 1 ? "s" : ""}
             </div>
-            <p className="text-xs text-red-600 mt-1">
+            <p className="text-xs text-rose-600 mt-1">
               Review and update your overdue tasks to stay on track.
             </p>
           </div>

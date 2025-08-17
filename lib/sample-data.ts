@@ -5,7 +5,6 @@ export const sampleUnits: Unit[] = [
     id: "unit-1",
     name: "Commercial Store",
     property: "Commercial",
-    location: "Downtown",
     address: "12 Market St",
     monthlyRent: 8900, // ~2400 NIS
     tenant: {
@@ -19,7 +18,6 @@ export const sampleUnits: Unit[] = [
     id: "unit-2",
     name: "House A - Unit 1",
     property: "Residential",
-    location: "Northside",
     address: "101 Maple Ave, Unit 1",
     monthlyRent: 5500, // ~1500 NIS
     tenant: {
@@ -33,7 +31,6 @@ export const sampleUnits: Unit[] = [
     id: "unit-3",
     name: "House A - Unit 2",
     property: "Residential",
-    location: "Northside",
     address: "101 Maple Ave, Unit 2",
     monthlyRent: 5700, // ~1550 NIS
     tenant: {
@@ -47,7 +44,6 @@ export const sampleUnits: Unit[] = [
     id: "unit-4",
     name: "House B - Unit 1",
     property: "Residential",
-    location: "Southside",
     address: "220 Pine St, Unit 1",
     monthlyRent: 5200, // ~1400 NIS
     tenant: {
@@ -61,7 +57,6 @@ export const sampleUnits: Unit[] = [
     id: "unit-5",
     name: "House B - Unit 2",
     property: "Residential",
-    location: "Southside",
     address: "220 Pine St, Unit 2",
     monthlyRent: 5300, // ~1425 NIS
     tenant: {

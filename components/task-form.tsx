@@ -157,7 +157,7 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
               placeholder="Enter task title"
             />
             {errors.title && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-rose-600 mt-1">
                 {errors.title.message}
               </p>
             )}
@@ -276,7 +276,7 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
             {...register("dueDate", { required: "Due date is required" })}
           />
           {errors.dueDate && (
-            <p className="text-sm text-red-600 mt-1">
+            <p className="text-sm text-rose-600 mt-1">
               {errors.dueDate.message}
             </p>
           )}
@@ -300,7 +300,7 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
 
           {reminderDays.map((days, index) => (
             <div key={index} className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-500" />
+              <Clock className="h-4 w-4 text-red-500" />
               <Input
                 type="number"
                 min="1"

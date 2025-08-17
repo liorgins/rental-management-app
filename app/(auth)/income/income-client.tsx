@@ -340,7 +340,7 @@ export function IncomeClient() {
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           income.scope === "Global"
                             ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
+                            : "bg-green-100 text-emerald-800"
                         }`}
                       >
                         {income.scope}

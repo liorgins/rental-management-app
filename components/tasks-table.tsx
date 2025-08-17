@@ -38,25 +38,25 @@ import { useState } from "react"
 import { TaskForm } from "./task-form"
 
 const priorityColors = {
-  Low: "bg-green-100 text-green-800",
+  Low: "bg-green-100 text-emerald-800",
   Medium: "bg-yellow-100 text-yellow-800",
   High: "bg-orange-100 text-orange-800",
-  Urgent: "bg-red-100 text-red-800",
+  Urgent: "bg-rose-100 text-red-500",
 }
 
 const statusColors = {
   Pending: "bg-gray-100 text-gray-800",
 
-  Completed: "bg-green-100 text-green-800",
+  Completed: "bg-green-100 text-emerald-800",
 }
 
 const categoryColors = {
   Maintenance: "bg-orange-100 text-orange-800",
   Inspection: "bg-purple-100 text-purple-800",
-  Repair: "bg-red-100 text-red-800",
+  Repair: "bg-rose-100 text-red-500",
   Administrative: "bg-blue-100 text-blue-800",
   Legal: "bg-indigo-100 text-indigo-800",
-  Financial: "bg-green-100 text-green-800",
+  Financial: "bg-green-100 text-emerald-800",
   Other: "bg-gray-100 text-gray-800",
 }
 
@@ -130,7 +130,7 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-gray-500">
+          <div className="text-red-500">
             No tasks found. Create your first task to get started.
           </div>
         </CardContent>
@@ -177,7 +177,7 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                     <TableRow
                       key={task.id}
                       className={`
-                      ${isOverdue(task) ? "bg-red-50" : ""}
+                      ${isOverdue(task) ? "bg-rose-50" : ""}
                       ${isDueSoon(task) ? "bg-yellow-50" : ""}
                     `}
                     >
@@ -189,7 +189,7 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                           className="p-1"
                         >
                           {task.status === "Completed" ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-emerald-600" />
                           ) : (
                             <Circle className="h-4 w-4 text-gray-400" />
                           )}
@@ -201,14 +201,14 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                           <span
                             className={`font-medium ${
                               task.status === "Completed"
-                                ? "line-through text-gray-500"
+                                ? "line-through text-red-500"
                                 : ""
                             }`}
                           >
                             {task.title}
                           </span>
                           {task.description && (
-                            <span className="text-sm text-gray-500 mt-1">
+                            <span className="text-red-500 mt-1">
                               {task.description}
                             </span>
                           )}
@@ -237,9 +237,9 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             {task.scope === "Global" ? (
-                              <Globe className="h-4 w-4 text-gray-500" />
+                              <Globe className="h-4 w-4 text-red-500" />
                             ) : (
-                              <Building className="h-4 w-4 text-blue-500" />
+                              <Building className="h-4 w-4 text-red-500" />
                             )}
                             <span className="text-sm">
                               {getUnitName(task.unitId)}
@@ -254,12 +254,12 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                             <AlertTriangle className="h-4 w-4 text-red-500" />
                           )}
                           {isDueSoon(task) && !isOverdue(task) && (
-                            <Clock className="h-4 w-4 text-yellow-500" />
+                            <Clock className="h-4 w-4 text-red-500" />
                           )}
                           <span
                             className={`text-sm ${
                               isOverdue(task)
-                                ? "text-red-600 font-medium"
+                                ? "text-rose-600 font-medium"
                                 : isDueSoon(task)
                                 ? "text-yellow-600 font-medium"
                                 : ""
@@ -293,7 +293,7 @@ export function TasksTable({ unitId, showUnitColumn = true }: TasksTableProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDeletingTask(task)}
-                            className="p-1 text-red-600 hover:text-red-700"
+                            className="p-1 text-rose-600 hover:text-rose-700"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

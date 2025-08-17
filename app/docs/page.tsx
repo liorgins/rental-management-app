@@ -14,7 +14,7 @@ export default function DocsPage() {
               href="/api-docs.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-red-500"
             >
               View API Documentation
               <svg
@@ -33,7 +33,7 @@ export default function DocsPage() {
               href="/api/openapi"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-6 py-3 border border-gray-300 text-red-500"
             >
               Download OpenAPI Spec
               <svg

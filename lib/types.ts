@@ -8,7 +8,6 @@ export type Unit = {
   id: string
   name: string // e.g., "Commercial Store", "House A - Unit 1"
   property: "Commercial" | "Residential"
-  location: "Downtown" | "Northside" | "Southside"
   address: string
   monthlyRent: number
   tenant: Tenant

@@ -95,11 +95,11 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
   const getTransactionIcon = (transaction: Transaction) => {
     if (transaction.type === "income") {
       if (transaction.category === "Taxes") {
-        return <IconBuilding className="h-4 w-4 text-green-600" />
+        return <IconBuilding className="h-4 w-4 text-emerald-500" />
       }
-      return <IconCoins className="h-4 w-4 text-green-600" />
+      return <IconCoins className="h-4 w-4 text-emerald-500" />
     } else {
-      return <IconReceipt className="h-4 w-4 text-red-600" />
+      return <IconReceipt className="h-4 w-4 text-rose-600" />
     }
   }
 
@@ -108,7 +108,7 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
     return (
       <div
         className={`flex items-center gap-1 ${
-          isPositive ? "text-green-600" : "text-red-600"
+          isPositive ? "text-emerald-500" : "text-rose-500"
         }`}
       >
         {isPositive ? (
@@ -149,21 +149,21 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex items-center gap-2 rounded-lg border p-3">
-            <IconTrendingUp className="h-5 w-5 text-green-600" />
+            <IconTrendingUp className="h-5 w-5 text-emerald-500" />
             <div>
               <div className="text-sm text-muted-foreground">Total Income</div>
-              <div className="font-semibold text-green-600">
+              <div className="font-semibold text-emerald-500">
                 {formatNIS(totalIncome)}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-lg border p-3">
-            <IconTrendingDown className="h-5 w-5 text-red-600" />
+            <IconTrendingDown className="h-5 w-5 text-rose-600" />
             <div>
               <div className="text-sm text-muted-foreground">
                 Total Expenses
               </div>
-              <div className="font-semibold text-red-600">
+              <div className="font-semibold text-rose-600">
                 {formatNIS(totalExpenses)}
               </div>
             </div>
@@ -171,14 +171,14 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
           <div className="flex items-center gap-2 rounded-lg border p-3">
             <IconCoins
               className={`h-5 w-5 ${
-                netAmount >= 0 ? "text-green-600" : "text-red-600"
+                netAmount >= 0 ? "text-emerald-500" : "text-rose-600"
               }`}
             />
             <div>
               <div className="text-sm text-muted-foreground">Net Amount</div>
               <div
                 className={`font-semibold ${
-                  netAmount >= 0 ? "text-green-600" : "text-red-600"
+                  netAmount >= 0 ? "text-emerald-500" : "text-rose-600"
                 }`}
               >
                 {formatNIS(netAmount)}
@@ -229,8 +229,8 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
                         }
                         className={
                           transaction.type === "income"
-                            ? "bg-green-100 text-green-800 hover:bg-green-100"
-                            : "bg-red-100 text-red-800 hover:bg-red-100"
+                            ? "bg-green-100 text-emerald-800 hover:bg-green-100"
+                            : "bg-rose-100 text-rose-500 hover:bg-rose-100"
                         }
                       >
                         {transaction.category}
