@@ -100,7 +100,7 @@ export class NotificationScheduler {
 
       // Create in-app notification
       const reminder = task.reminders.find((r) => r.id === reminderId)
-      const daysBeforeDue = reminder?.daysBeforeDue || 1
+      const daysBeforeDue = reminder?.customDays || 1
       await createNotification({
         type: "task_reminder",
         title: `Task Reminder: ${task.title}`,
