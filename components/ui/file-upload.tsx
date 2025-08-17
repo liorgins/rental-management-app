@@ -110,13 +110,13 @@ export function FileUpload({
   return (
     <div className={`space-y-4 ${className}`}>
       <Card
-        className={`border-2 border-dashed transition-all duration-200 bg-white ${
+        className={`border-2 border-dashed transition-all duration-200 bg-background ${
           isUploadDisabled
             ? "border-muted-foreground/10 opacity-50 cursor-not-allowed"
             : `cursor-pointer ${
                 isDragOver
                   ? "border-primary bg-primary/5 scale-[1.02]"
-                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-gray-50"
+                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
               }`
         }`}
         onDragOver={!isUploadDisabled ? handleDragOver : undefined}
@@ -128,10 +128,10 @@ export function FileUpload({
           <div
             className={`rounded-full p-4 mb-4 transition-colors ${
               isUploadDisabled
-                ? "bg-gray-100"
+                ? "bg-muted"
                 : isDragOver
                 ? "bg-primary/10"
-                : "bg-gray-100"
+                : "bg-muted"
             }`}
           >
             <IconUpload
@@ -189,7 +189,7 @@ export function FileUpload({
             {files.map((file, index) => (
               <div
                 key={`${file.name}-${index}`}
-                className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                className="flex items-center justify-between p-3 bg-card border border-border rounded-lg"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {getFileIcon(file)}

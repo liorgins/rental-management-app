@@ -1,6 +1,14 @@
 import { isBrowser, redis, STORAGE_KEYS } from "./kv"
 import { sampleUnits, seedExpenses } from "./sample-data"
-import type { Document, Expense, Income, Unit } from "./types"
+import type {
+  AppNotification,
+  Document,
+  Expense,
+  Income,
+  PushSubscription,
+  Task,
+  Unit,
+} from "./types"
 
 // Fallback to localStorage when KV is not available (development mode)
 const localStorage = isBrowser ? window.localStorage : null
@@ -416,4 +424,263 @@ export async function deleteDocument(id: string): Promise<boolean> {
 
   await saveDocuments(filteredDocuments)
   return true
+}
+
+// Task operations
+async function saveTasks(tasks: Task[]) {
+  try {
+    await redis.set(STORAGE_KEYS.TASKS, tasks)
+  } catch (error) {
+    console.warn("Failed to save to KV, falling back to localStorage:", error)
+    if (localStorage) {
+      localStorage.setItem("rental.tasks", JSON.stringify(tasks))
+    }
+  }
+}
+
+export async function getTasks(): Promise<Task[]> {
+  try {
+    // Try Upstash KV first
+    const tasks = await redis.get<Task[]>(STORAGE_KEYS.TASKS)
+    if (tasks && Array.isArray(tasks)) {
+      return tasks
+    }
+  } catch (error) {
+    console.warn(
+      "Failed to fetch from KV, falling back to localStorage:",
+      error
+    )
+  }
+
+  // Fallback to localStorage
+  if (localStorage) {
+    try {
+      const stored = localStorage.getItem("rental.tasks")
+      if (stored) {
+        return JSON.parse(stored) as Task[]
+      }
+    } catch (error) {
+      console.error("Failed to parse tasks from localStorage:", error)
+    }
+  }
+
+  return []
+}
+
+export async function getTask(id: string): Promise<Task | null> {
+  const tasks = await getTasks()
+  return tasks.find((task) => task.id === id) || null
+}
+
+export async function createTask(task: Task): Promise<Task> {
+  const tasks = await getTasks()
+  const updatedTasks = [task, ...tasks]
+  await saveTasks(updatedTasks)
+  return task
+}
+
+export async function updateTask(
+  id: string,
+  updates: Partial<Task>
+): Promise<Task | null> {
+  const tasks = await getTasks()
+  const index = tasks.findIndex((task) => task.id === id)
+
+  if (index === -1) {
+    return null
+  }
+
+  const updatedTask = { ...tasks[index], ...updates }
+  tasks[index] = updatedTask
+  await saveTasks(tasks)
+  return updatedTask
+}
+
+export async function deleteTask(id: string): Promise<boolean> {
+  const tasks = await getTasks()
+  const filteredTasks = tasks.filter((task) => task.id !== id)
+
+  if (filteredTasks.length === tasks.length) {
+    return false // Task not found
+  }
+
+  await saveTasks(filteredTasks)
+  return true
+}
+
+// Push subscription operations
+async function savePushSubscriptions(subscriptions: PushSubscription[]) {
+  try {
+    await redis.set(STORAGE_KEYS.PUSH_SUBSCRIPTIONS, subscriptions)
+  } catch (error) {
+    console.warn("Failed to save to KV, falling back to localStorage:", error)
+    if (localStorage) {
+      localStorage.setItem(
+        "rental.pushSubscriptions",
+        JSON.stringify(subscriptions)
+      )
+    }
+  }
+}
+
+export async function getPushSubscriptions(): Promise<PushSubscription[]> {
+  try {
+    // Try Upstash KV first
+    const subscriptions = await redis.get<PushSubscription[]>(
+      STORAGE_KEYS.PUSH_SUBSCRIPTIONS
+    )
+    if (subscriptions && Array.isArray(subscriptions)) {
+      return subscriptions
+    }
+  } catch (error) {
+    console.warn(
+      "Failed to fetch from KV, falling back to localStorage:",
+      error
+    )
+  }
+
+  // Fallback to localStorage
+  if (localStorage) {
+    try {
+      const stored = localStorage.getItem("rental.pushSubscriptions")
+      if (stored) {
+        return JSON.parse(stored) as PushSubscription[]
+      }
+    } catch (error) {
+      console.error(
+        "Failed to parse push subscriptions from localStorage:",
+        error
+      )
+    }
+  }
+
+  return []
+}
+
+export async function createPushSubscription(
+  subscription: PushSubscription
+): Promise<PushSubscription> {
+  const subscriptions = await getPushSubscriptions()
+  // Remove any existing subscription with the same endpoint
+  const filteredSubscriptions = subscriptions.filter(
+    (sub) => sub.endpoint !== subscription.endpoint
+  )
+  const updatedSubscriptions = [subscription, ...filteredSubscriptions]
+  await savePushSubscriptions(updatedSubscriptions)
+  return subscription
+}
+
+export async function deletePushSubscription(
+  endpoint: string
+): Promise<boolean> {
+  const subscriptions = await getPushSubscriptions()
+  const filteredSubscriptions = subscriptions.filter(
+    (sub) => sub.endpoint !== endpoint
+  )
+
+  if (filteredSubscriptions.length === subscriptions.length) {
+    return false // Subscription not found
+  }
+
+  await savePushSubscriptions(filteredSubscriptions)
+  return true
+}
+
+// Notifications operations
+export async function getNotifications(): Promise<AppNotification[]> {
+  try {
+    // Try Upstash KV first
+    const notifications = await redis.get<AppNotification[]>(
+      STORAGE_KEYS.NOTIFICATIONS
+    )
+    if (notifications && Array.isArray(notifications)) {
+      return notifications
+    }
+
+    // Fallback to localStorage
+    if (localStorage) {
+      const stored = localStorage.getItem("notifications")
+      if (stored) {
+        return JSON.parse(stored)
+      }
+    }
+
+    return []
+  } catch (error) {
+    console.error("Error fetching notifications:", error)
+    return []
+  }
+}
+
+export async function saveNotifications(
+  notifications: AppNotification[]
+): Promise<void> {
+  try {
+    // Save to Upstash KV
+    await redis.set(STORAGE_KEYS.NOTIFICATIONS, notifications)
+
+    // Also save to localStorage as fallback
+    if (localStorage) {
+      localStorage.setItem("notifications", JSON.stringify(notifications))
+    }
+  } catch (error) {
+    console.error("Error saving notifications:", error)
+    // Fallback to localStorage only
+    if (localStorage) {
+      localStorage.setItem("notifications", JSON.stringify(notifications))
+    }
+  }
+}
+
+export async function createNotification(
+  notification: Omit<AppNotification, "id" | "createdAt">
+): Promise<AppNotification> {
+  const notifications = await getNotifications()
+
+  const newNotification: AppNotification = {
+    ...notification,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+  }
+
+  notifications.unshift(newNotification) // Add to beginning
+
+  // Keep only the last 50 notifications
+  if (notifications.length > 50) {
+    notifications.splice(50)
+  }
+
+  await saveNotifications(notifications)
+  return newNotification
+}
+
+export async function markNotificationAsRead(id: string): Promise<void> {
+  const notifications = await getNotifications()
+  const notification = notifications.find((n) => n.id === id)
+
+  if (notification) {
+    notification.isRead = true
+    await saveNotifications(notifications)
+  }
+}
+
+export async function markAllNotificationsAsRead(): Promise<void> {
+  const notifications = await getNotifications()
+  const updatedNotifications = notifications.map((n) => ({
+    ...n,
+    isRead: true,
+  }))
+  await saveNotifications(updatedNotifications)
+}
+
+export async function getUnreadNotifications(): Promise<AppNotification[]> {
+  const notifications = await getNotifications()
+  return notifications.filter((n) => !n.isRead)
+}
+
+export async function getRecentNotifications(
+  limit: number = 5
+): Promise<AppNotification[]> {
+  const notifications = await getNotifications()
+  return notifications.slice(0, limit)
 }

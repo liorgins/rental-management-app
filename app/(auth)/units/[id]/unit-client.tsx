@@ -15,6 +15,7 @@ import { toast } from "sonner"
 
 import { ExpensesForm } from "@/components/expenses-form"
 import { IncomeForm } from "@/components/income-form"
+import { TaskForm } from "@/components/task-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,6 +48,7 @@ import {
 } from "@/components/ui/table"
 import { useCreateExpense, useUnitExpenses } from "@/hooks/use-expenses"
 import { useCreateIncome, useUnitIncomes } from "@/hooks/use-income"
+import { useTasksByUnit } from "@/hooks/use-tasks"
 import { useUnit, useUnits, useUpdateUnit } from "@/hooks/use-units"
 import type { Expense, Income, Unit } from "@/lib/types"
 import { formatNIS, isContractEndingSoon } from "@/lib/utils"
@@ -59,6 +61,7 @@ export default function DashboardUnitClient({ id }: { id: string }) {
     useUnitExpenses(id)
   const { data: unitIncomes = [], isLoading: incomesLoading } =
     useUnitIncomes(id)
+  const { data: unitTasks = [], isLoading: tasksLoading } = useTasksByUnit(id)
   const createExpenseMutation = useCreateExpense()
   const createIncomeMutation = useCreateIncome()
   const updateUnitMutation = useUpdateUnit()
@@ -71,6 +74,9 @@ export default function DashboardUnitClient({ id }: { id: string }) {
   const [duplicateIncome, setDuplicateIncome] = React.useState<Income | null>(
     null
   )
+
+  // Task modal state
+  const [showCreateTask, setShowCreateTask] = React.useState(false)
 
   const totalUnitExpensesYear = React.useMemo(() => {
     const y = new Date().getFullYear()
@@ -148,7 +154,13 @@ export default function DashboardUnitClient({ id }: { id: string }) {
   }
 
   // Show loading state
-  if (unitLoading || unitsLoading || expensesLoading || incomesLoading) {
+  if (
+    unitLoading ||
+    unitsLoading ||
+    expensesLoading ||
+    incomesLoading ||
+    tasksLoading
+  ) {
     return (
       <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -336,6 +348,82 @@ export default function DashboardUnitClient({ id }: { id: string }) {
                 defaultUnitId={unit.id}
                 onAdd={handleAddExpense}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Unit Tasks
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCreateTask(true)}
+              >
+                <IconCalendar className="h-4 w-4 mr-2" />
+                Add Task
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-bold text-blue-600">
+                    {unitTasks.filter((t) => t.status === "Pending").length}
+                  </div>
+                  <div className="text-xs text-gray-600">Active</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-yellow-600">
+                    {
+                      unitTasks.filter((t) => {
+                        const dueDate = new Date(t.dueDate)
+                        const threeDaysFromNow = new Date()
+                        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
+                        return (
+                          dueDate <= threeDaysFromNow &&
+                          dueDate >= new Date() &&
+                          t.status !== "Completed"
+                        )
+                      }).length
+                    }
+                  </div>
+                  <div className="text-xs text-gray-600">Due Soon</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-red-600">
+                    {
+                      unitTasks.filter(
+                        (t) =>
+                          new Date(t.dueDate) < new Date() &&
+                          t.status !== "Completed"
+                      ).length
+                    }
+                  </div>
+                  <div className="text-xs text-gray-600">Overdue</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-green-600">
+                    {unitTasks.filter((t) => t.status === "Completed").length}
+                  </div>
+                  <div className="text-xs text-gray-600">Done</div>
+                </div>
+              </div>
+              {unitTasks.length > 0 && (
+                <div className="pt-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <a href={`/tasks?unit=${unit.id}`}>View All Unit Tasks</a>
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -670,6 +758,16 @@ export default function DashboardUnitClient({ id }: { id: string }) {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Task Dialog */}
+      <Dialog open={showCreateTask} onOpenChange={setShowCreateTask}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <TaskForm
+            onSuccess={() => setShowCreateTask(false)}
+            onCancel={() => setShowCreateTask(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

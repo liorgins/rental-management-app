@@ -14,6 +14,9 @@ export const STORAGE_KEYS = {
   EXPENSES: "rental:expenses",
   INCOMES: "rental:incomes",
   DOCUMENTS: "rental:documents",
+  TASKS: "rental:tasks",
+  PUSH_SUBSCRIPTIONS: "rental:push_subscriptions",
+  NOTIFICATIONS: "rental:notifications",
   INITIALIZED: "rental:initialized",
 } as const
 

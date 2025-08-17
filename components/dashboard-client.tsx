@@ -4,6 +4,7 @@ import { IconFilter, IconX } from "@tabler/icons-react"
 import * as React from "react"
 
 import { computeYearlyStats } from "@/components/chart-cashflow"
+import { RecentTasks } from "@/components/recent-tasks"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -225,11 +226,14 @@ export default function DashboardClient() {
       </div>
 
       <div className="px-4 lg:px-6">
-        <RecentTransactions
-          expenses={filteredExpenses}
-          incomes={filteredIncomes}
-          units={units}
-        />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <RecentTransactions
+            expenses={filteredExpenses}
+            incomes={filteredIncomes}
+            units={units}
+          />
+          <RecentTasks />
+        </div>
       </div>
       <div className="px-4 lg:px-6">
         <UnitsTable units={filteredUnits} />

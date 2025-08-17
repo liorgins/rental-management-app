@@ -94,3 +94,69 @@ export type Document = {
   description?: string
   tags: string[] // Dynamic tags for categorization and filtering
 }
+
+export type TaskCategory =
+  | "Maintenance"
+  | "Inspection"
+  | "Repair"
+  | "Administrative"
+  | "Legal"
+  | "Financial"
+  | "Other"
+
+export type TaskPriority = "Low" | "Medium" | "High" | "Urgent"
+
+export type TaskStatus = "Pending" | "Completed"
+
+export type ReminderPeriod = "1_day" | "2_days" | "1_week" | "custom"
+
+export type TaskReminder = {
+  id: string
+  period: ReminderPeriod
+  customDays?: number // for custom reminder period
+  notificationSent: boolean
+  scheduledFor: string // ISO date when notification should be sent
+}
+
+export type Task = {
+  id: string
+  title: string
+  description?: string
+  category: TaskCategory
+  priority: TaskPriority
+  status: TaskStatus
+  scope: "Global" | "Unit"
+  unitId?: string // present when scope === "Unit"
+  dueDate: string // ISO date
+  createdDate: string // ISO date
+  completedDate?: string // ISO date when marked as completed
+  reminders: TaskReminder[]
+  notes?: string
+}
+
+export type PushSubscription = {
+  id: string
+  endpoint: string
+  keys: {
+    p256dh: string
+    auth: string
+  }
+  createdAt: string
+}
+
+export type NotificationType =
+  | "task_reminder"
+  | "task_overdue"
+  | "task_completed"
+  | "system"
+
+export type AppNotification = {
+  id: string
+  type: NotificationType
+  title: string
+  message: string
+  taskId?: string
+  unitId?: string
+  isRead: boolean
+  createdAt: string
+}

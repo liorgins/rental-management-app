@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  IconChecklist,
   IconDashboard,
   IconFile,
   IconFileDollar,
@@ -39,6 +40,11 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+    },
+    {
+      title: "Tasks",
+      url: "/tasks",
+      icon: IconChecklist,
     },
     {
       title: "Documents",
