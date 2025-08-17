@@ -28,9 +28,18 @@ export async function PUT(
     const { id } = await params
     const body = await request.json()
 
-    // If status is being changed to completed, add completion date
+    // If status is being changed to completed, add completion date and reset notification tracking
     if (body.status === "Completed" && !body.completedDate) {
       body.completedDate = new Date().toISOString()
+      // Reset notification tracking when task is completed
+      body.overdueNotificationSent = false
+      // Reset reminder notifications as well in case task is reopened
+      if (body.reminders) {
+        body.reminders = body.reminders.map((reminder: any) => ({
+          ...reminder,
+          notificationSent: false,
+        }))
+      }
     }
 
     // If status is being changed from completed, remove completion date

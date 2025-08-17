@@ -132,6 +132,7 @@ export type Task = {
   completedDate?: string // ISO date when marked as completed
   reminders: TaskReminder[]
   notes?: string
+  overdueNotificationSent?: boolean // Track if overdue notification was sent
 }
 
 export type PushSubscription = {

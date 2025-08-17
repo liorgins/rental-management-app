@@ -57,14 +57,18 @@ export class NotificationScheduler {
           }
         }
 
-        // Check if task is due today and send due notification
+        // Check if task is overdue and send overdue notification (only once)
         const dueDate = new Date(task.dueDate)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         dueDate.setHours(0, 0, 0, 0)
 
-        if (dueDate.getTime() === today.getTime()) {
-          console.log(`📅 Sending due notification for task: ${task.title}`)
+        // Task is overdue if due date is in the past and we haven't sent notification yet
+        if (
+          dueDate.getTime() < today.getTime() &&
+          !task.overdueNotificationSent
+        ) {
+          console.log(`📅 Sending overdue notification for task: ${task.title}`)
           const success = await this.sendTaskDueNotification(task)
           if (success) {
             result.dueNotificationsSent++
@@ -146,6 +150,9 @@ export class NotificationScheduler {
         unitId: task.unitId,
         isRead: false,
       })
+
+      // Mark overdue notification as sent
+      await updateTask(task.id, { overdueNotificationSent: true })
 
       console.log(`✅ Due notification sent for task: ${task.title}`)
       return true
