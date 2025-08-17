@@ -633,7 +633,9 @@ export async function saveNotifications(
 }
 
 export async function createNotification(
-  notification: Omit<AppNotification, "id" | "createdAt">
+  notification: Omit<AppNotification, "id" | "createdAt" | "status"> & {
+    isRead?: boolean
+  }
 ): Promise<AppNotification> {
   const notifications = await getNotifications()
 
@@ -641,6 +643,8 @@ export async function createNotification(
     ...notification,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
+    status: notification.isRead ? "read" : "new",
+    isRead: notification.isRead, // Keep for backward compatibility
   }
 
   notifications.unshift(newNotification) // Add to beginning
@@ -659,7 +663,37 @@ export async function markNotificationAsRead(id: string): Promise<void> {
   const notification = notifications.find((n) => n.id === id)
 
   if (notification) {
-    notification.isRead = true
+    notification.status = "read"
+    notification.isRead = true // Keep for backward compatibility
+    await saveNotifications(notifications)
+  }
+}
+
+export async function markNotificationAsSeen(id: string): Promise<void> {
+  const notifications = await getNotifications()
+  const notification = notifications.find((n) => n.id === id)
+
+  if (notification && notification.status === "new") {
+    notification.status = "seen"
+    await saveNotifications(notifications)
+  }
+}
+
+export async function markMultipleNotificationsAsSeen(
+  ids: string[]
+): Promise<void> {
+  const notifications = await getNotifications()
+  let hasChanges = false
+
+  for (const id of ids) {
+    const notification = notifications.find((n) => n.id === id)
+    if (notification && notification.status === "new") {
+      notification.status = "seen"
+      hasChanges = true
+    }
+  }
+
+  if (hasChanges) {
     await saveNotifications(notifications)
   }
 }
@@ -668,14 +702,25 @@ export async function markAllNotificationsAsRead(): Promise<void> {
   const notifications = await getNotifications()
   const updatedNotifications = notifications.map((n) => ({
     ...n,
-    isRead: true,
+    status: "read" as const,
+    isRead: true, // Keep for backward compatibility
   }))
   await saveNotifications(updatedNotifications)
 }
 
 export async function getUnreadNotifications(): Promise<AppNotification[]> {
   const notifications = await getNotifications()
-  return notifications.filter((n) => !n.isRead)
+  return notifications.filter((n) => n.status !== "read")
+}
+
+export async function getNewNotifications(): Promise<AppNotification[]> {
+  const notifications = await getNotifications()
+  return notifications.filter((n) => n.status === "new")
+}
+
+export async function getSeenNotifications(): Promise<AppNotification[]> {
+  const notifications = await getNotifications()
+  return notifications.filter((n) => n.status === "seen")
 }
 
 export async function getRecentNotifications(

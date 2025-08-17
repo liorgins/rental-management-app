@@ -151,6 +151,8 @@ export type NotificationType =
   | "task_completed"
   | "system"
 
+export type NotificationStatus = "new" | "seen" | "read"
+
 export type AppNotification = {
   id: string
   type: NotificationType
@@ -158,6 +160,8 @@ export type AppNotification = {
   message: string
   taskId?: string
   unitId?: string
-  isRead: boolean
+  status: NotificationStatus
   createdAt: string
+  // Keep isRead for backward compatibility during migration
+  isRead?: boolean
 }

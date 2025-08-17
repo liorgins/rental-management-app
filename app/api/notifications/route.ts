@@ -1,10 +1,13 @@
 import {
   createNotification,
+  getNewNotifications,
   getNotifications,
   getRecentNotifications,
   getUnreadNotifications,
   markAllNotificationsAsRead,
+  markMultipleNotificationsAsSeen,
   markNotificationAsRead,
+  markNotificationAsSeen,
 } from "@/lib/kv-service"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -16,6 +19,11 @@ export async function GET(request: NextRequest) {
 
     if (type === "unread") {
       const notifications = await getUnreadNotifications()
+      return NextResponse.json(notifications)
+    }
+
+    if (type === "new") {
+      const notifications = await getNewNotifications()
       return NextResponse.json(notifications)
     }
 
@@ -71,10 +79,20 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, id } = body
+    const { action, id, ids } = body
 
     if (action === "mark_read" && id) {
       await markNotificationAsRead(id)
+      return NextResponse.json({ success: true })
+    }
+
+    if (action === "mark_seen" && id) {
+      await markNotificationAsSeen(id)
+      return NextResponse.json({ success: true })
+    }
+
+    if (action === "mark_multiple_seen" && Array.isArray(ids)) {
+      await markMultipleNotificationsAsSeen(ids)
       return NextResponse.json({ success: true })
     }
 

@@ -19,6 +19,14 @@ async function fetchUnreadNotifications(): Promise<AppNotification[]> {
   return response.json()
 }
 
+async function fetchNewNotifications(): Promise<AppNotification[]> {
+  const response = await fetch("/api/notifications?type=new")
+  if (!response.ok) {
+    throw new Error("Failed to fetch new notifications")
+  }
+  return response.json()
+}
+
 async function fetchRecentNotifications(
   limit: number
 ): Promise<AppNotification[]> {
@@ -39,6 +47,34 @@ async function markNotificationAsReadApi(id: string): Promise<void> {
   })
   if (!response.ok) {
     throw new Error("Failed to mark notification as read")
+  }
+}
+
+async function markNotificationAsSeenApi(id: string): Promise<void> {
+  const response = await fetch("/api/notifications", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "mark_seen", id }),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to mark notification as seen")
+  }
+}
+
+async function markMultipleNotificationsAsSeenApi(
+  ids: string[]
+): Promise<void> {
+  const response = await fetch("/api/notifications", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "mark_multiple_seen", ids }),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to mark notifications as seen")
   }
 }
 
@@ -92,6 +128,14 @@ export function useUnreadNotifications() {
   })
 }
 
+export function useNewNotifications() {
+  return useQuery({
+    queryKey: ["notifications", "new"],
+    queryFn: fetchNewNotifications,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  })
+}
+
 export function useRecentNotifications(limit: number = 5) {
   return useQuery({
     queryKey: ["notifications", "recent", limit],
@@ -127,6 +171,28 @@ export function useMarkNotificationAsRead() {
 
   return useMutation({
     mutationFn: markNotificationAsReadApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
+    },
+  })
+}
+
+export function useMarkNotificationAsSeen() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: markNotificationAsSeenApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
+    },
+  })
+}
+
+export function useMarkMultipleNotificationsAsSeen() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: markMultipleNotificationsAsSeenApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] })
     },

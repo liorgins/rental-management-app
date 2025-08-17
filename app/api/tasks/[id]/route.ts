@@ -1,4 +1,5 @@
 import { deleteTask, getTask, updateTask } from "@/lib/kv-service"
+import type { TaskReminder } from "@/lib/types"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
@@ -35,7 +36,7 @@ export async function PUT(
       body.overdueNotificationSent = false
       // Reset reminder notifications as well in case task is reopened
       if (body.reminders) {
-        body.reminders = body.reminders.map((reminder: any) => ({
+        body.reminders = body.reminders.map((reminder: TaskReminder) => ({
           ...reminder,
           notificationSent: false,
         }))
