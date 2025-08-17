@@ -139,9 +139,10 @@ export function ExpensesForm({ units, defaultUnitId, onAdd }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size="sm" className="shrink-0">
           <IconPlus />
-          Add Expense
+          <span className="hidden sm:inline">Add Expense</span>
+          <span className="sm:hidden">Expense</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[560px]">

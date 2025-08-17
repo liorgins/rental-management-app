@@ -1,6 +1,7 @@
 "use client"
 
 import { IconChevronRight } from "@tabler/icons-react"
+import { Building } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,10 @@ export function UnitsTable({ units }: { units: Unit[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Units Overview</CardTitle>
+        <CardTitle className="text-base font-medium flex flex-wrap items-center gap-2">
+          <Building className="h-4 w-4" />
+          Units Overview
+        </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         <div className="overflow-x-auto">

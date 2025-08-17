@@ -16,10 +16,10 @@ import {
 import Link from "next/link"
 
 const priorityColors = {
-  Low: "bg-green-100 text-emerald-800",
-  Medium: "bg-yellow-100 text-yellow-800",
-  High: "bg-orange-100 text-orange-800",
-  Urgent: "bg-rose-100 text-red-500",
+  Low: "bg-secondary text-secondary-foreground",
+  Medium: "bg-secondary text-secondary-foreground",
+  High: "bg-secondary text-secondary-foreground",
+  Urgent: "bg-secondary text-secondary-foreground",
 }
 
 export function RecentTasks() {
@@ -50,13 +50,13 @@ export function RecentTasks() {
 
   return (
     <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base font-medium flex items-center gap-2">
+      <CardHeader className="flex flex-wrap flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-base font-medium flex flex-wrap items-center gap-2">
           <Calendar className="h-4 w-4" />
           Task Overview
         </CardTitle>
         <Button asChild variant="ghost" size="sm">
-          <Link href="/tasks" className="flex items-center gap-1">
+          <Link href="/tasks" className="flex flex-wrap items-center gap-1">
             View all
             <ArrowRight className="h-3 w-3" />
           </Link>
@@ -94,7 +94,7 @@ export function RecentTasks() {
         {/* Recent/Upcoming Tasks */}
         {recentTasks.length > 0 ? (
           <div className="space-y-3">
-            <div className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <div className="text-sm font-medium text-gray-700 flex flex-wrap items-center gap-2">
               <Clock className="h-4 w-4" />
               Upcoming & Overdue Tasks
             </div>
@@ -102,16 +102,10 @@ export function RecentTasks() {
               {recentTasks.map((task) => (
                 <div
                   key={task.id}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isOverdue(task)
-                      ? "bg-rose-50 border-red-200"
-                      : isDueSoon(task)
-                      ? "bg-yellow-50 border-yellow-200"
-                      : "bg-gray-50 border-gray-200"
-                  }`}
+                  className="flex flex-wrap items-center justify-between p-3 rounded-lg border border-border bg-muted/50 dark:bg-muted/30"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       {isOverdue(task) && (
                         <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       )}
@@ -133,7 +127,7 @@ export function RecentTasks() {
                         {task.priority}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
                       <Calendar className="h-3 w-3" />
                       <span
                         className={
@@ -162,13 +156,13 @@ export function RecentTasks() {
         )}
 
         {overdueTasks.length > 0 && (
-          <div className="mt-4 p-3 bg-rose-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-rose-700 font-medium text-sm">
+          <div className="mt-4 p-3 bg-muted/50 dark:bg-muted/30 border border-border rounded-lg">
+            <div className="flex flex-wrap items-center gap-2 text-foreground font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
               {overdueTasks.length} overdue task
               {overdueTasks.length > 1 ? "s" : ""}
             </div>
-            <p className="text-xs text-rose-600 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Review and update your overdue tasks to stay on track.
             </p>
           </div>

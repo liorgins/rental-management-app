@@ -1,12 +1,19 @@
 "use client"
 
 import { IconFilter, IconX } from "@tabler/icons-react"
+import {
+  Coins,
+  Home,
+  Info,
+  TrendingDown,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react"
 import * as React from "react"
 
 import { computeYearlyStats } from "@/components/chart-cashflow"
 import { RecentTasks } from "@/components/recent-tasks"
 import { RecentTransactions } from "@/components/recent-transactions"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -18,6 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { UnitsTable } from "@/components/units-table"
 import { useExpenses } from "@/hooks/use-expenses"
 import { useIncomes } from "@/hooks/use-income"
@@ -146,13 +158,13 @@ export default function DashboardClient() {
     <div className="flex flex-1 flex-col gap-6 py-6">
       {/* Compact Filters */}
       <div className="px-4 lg:px-6">
-        <div className="flex items-center gap-4 rounded-lg border px-4 py-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-4 rounded-lg border px-4 py-2 bg-card">
+          <div className="flex flex-wrap items-center gap-2">
             <IconFilter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filters:</span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <Label className="text-xs text-muted-foreground">Unit:</Label>
             <Select value={selectedUnit} onValueChange={setSelectedUnit}>
               <SelectTrigger className="h-7 w-32 border-0 bg-transparent p-1 text-xs">
@@ -169,7 +181,7 @@ export default function DashboardClient() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <Label className="text-xs text-muted-foreground">Year:</Label>
             <Select
               value={selectedYear.toString()}
@@ -201,26 +213,32 @@ export default function DashboardClient() {
       </div>
 
       <div className="px-4 lg:px-6">
-        <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Expected Yearly Revenue"
             value={formatNIS(annualNet)}
-            badge="net income"
+            calculation="Annual Income - Annual Expenses"
+            icon={TrendingUp}
           />
           <StatCard
             title="Gross Annual Income"
             value={formatNIS(annualIncome)}
-            badge="rent + incomes"
+            calculation="Total rent + recurring incomes × 12 + one-time incomes"
+            icon={Coins}
           />
           <StatCard
             title="Annual Expenses"
             value={formatNIS(annualExpenses)}
-            badge="taxes + expenses"
+            calculation="Recurring expenses × 12 + one-time expenses"
+            icon={TrendingDown}
           />
           <StatCard
             title="Total Monthly Rent"
             value={formatNIS(monthlyRent)}
-            badge={`${filteredUnits.length} units`}
+            calculation={`Sum of monthly rent from ${
+              filteredUnits.length
+            } unit${filteredUnits.length !== 1 ? "s" : ""}`}
+            icon={Home}
           />
         </div>
       </div>
@@ -247,26 +265,36 @@ export default function DashboardClient() {
 function StatCard({
   title,
   value,
-  badge,
+  calculation,
+  icon: Icon,
 }: {
   title: string
   value: string
-  badge?: string
+  calculation: string
+  icon: LucideIcon
 }) {
   return (
     <Card className="@container/card">
-      <CardHeader>
-        <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-medium flex flex-wrap items-center gap-2">
+          <Icon className="h-4 w-4" />
+          {title}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="ml-auto">
+                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{calculation}</p>
+            </TooltipContent>
+          </Tooltip>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="flex items-end justify-between">
+      <CardContent>
         <div className="text-3xl font-semibold tabular-nums @[250px]/card:text-4xl">
           {value}
         </div>
-        {badge && (
-          <Badge variant="outline" className="ml-2">
-            {badge}
-          </Badge>
-        )}
       </CardContent>
     </Card>
   )

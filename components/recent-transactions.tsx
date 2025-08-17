@@ -9,6 +9,7 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from "@tabler/icons-react"
+import { Receipt } from "lucide-react"
 
 import { ExpensesForm } from "@/components/expenses-form"
 import { IncomeForm } from "@/components/income-form"
@@ -132,23 +133,29 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+        <div className="flex flex-wrap flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-base font-medium flex flex-wrap items-center gap-2">
+            <Receipt className="h-4 w-4" />
             Recent Transactions
-            <Badge variant="outline" className="ml-2">
+            <Badge variant="outline" className="ml-2 sm:ml-0 sm:hidden">
               {recentTransactions.length} items
             </Badge>
           </CardTitle>
 
-          <div className="flex items-center gap-2">
-            <IncomeForm units={units} onAdd={handleAddIncome} />
-            <ExpensesForm units={units} onAdd={handleAddExpense} />
+          <div className="flex flex-wrap items-center gap-2 justify-end">
+            <Badge variant="outline" className="hidden sm:inline-flex">
+              {recentTransactions.length} items
+            </Badge>
+            <div className="flex flex-wrap gap-1 sm:gap-2">
+              <IncomeForm units={units} onAdd={handleAddIncome} />
+              <ExpensesForm units={units} onAdd={handleAddExpense} />
+            </div>
           </div>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-2 rounded-lg border p-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border p-3">
             <IconTrendingUp className="h-5 w-5 text-emerald-500" />
             <div>
               <div className="text-sm text-muted-foreground">Total Income</div>
@@ -157,7 +164,7 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border p-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border p-3">
             <IconTrendingDown className="h-5 w-5 text-rose-600" />
             <div>
               <div className="text-sm text-muted-foreground">
@@ -168,7 +175,7 @@ export function RecentTransactions({ expenses, incomes, units }: Props) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border p-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border p-3">
             <IconCoins
               className={`h-5 w-5 ${
                 netAmount >= 0 ? "text-emerald-500" : "text-rose-600"

@@ -158,9 +158,10 @@ export function IncomeForm({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="default">
+        <Button size="sm" variant="default" className="shrink-0">
           <IconPlus />
-          Add Income
+          <span className="hidden sm:inline">Add Income</span>
+          <span className="sm:hidden">Income</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[560px]">
