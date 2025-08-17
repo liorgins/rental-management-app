@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useOverdueTasks, useTasks, useUpcomingTasks } from "@/hooks/use-tasks"
 import type { Task } from "@/lib/types"
-import { format } from "date-fns"
+import { format } from "date-fns/format"
 import {
   AlertTriangle,
   ArrowRight,
@@ -38,14 +38,6 @@ export function RecentTasks() {
   const isOverdue = (task: Task) => {
     if (task.status === "Completed") return false
     return new Date(task.dueDate) < new Date()
-  }
-
-  const isDueSoon = (task: Task) => {
-    if (task.status === "Completed") return false
-    const dueDate = new Date(task.dueDate)
-    const threeDaysFromNow = new Date()
-    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3)
-    return dueDate <= threeDaysFromNow && dueDate >= new Date()
   }
 
   return (
