@@ -3,7 +3,7 @@
 const CACHE_NAME = 'rental-app-v1';
 
 // Install event - force immediate activation
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => {
   console.log('Service Worker installing');
   // Force the waiting service worker to become the active service worker
   self.skipWaiting();
